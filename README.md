@@ -2,6 +2,10 @@
 
 An intelligent interview preparation platform powered by AI that helps users practice interviews, receive real-time feedback, and improve their interview skills.
 
+## 🌐 Live Demo
+
+Open the deployed app: https://interview-ai-prep-zeta.vercel.app/login
+
 ## 🌟 Features
 
 - **User Authentication** - Secure registration and login with JWT tokens
