@@ -31,6 +31,29 @@ const interviewReportSchema = z.object({
     title: z.string().describe("The title of the job for which the interview report is generated"),
 })
 
+const MODEL_CANDIDATES = ["gemini-2.0-flash", "gemini-1.5-flash"];
+
+async function generateWithFallback(contents, schema) {
+    let lastError;
+    for (const model of MODEL_CANDIDATES) {
+        try {
+            const response = await ai.models.generateContent({
+                model,
+                contents,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: zodToJsonSchema(schema),
+                }
+            });
+            return response;
+        } catch (err) {
+            console.warn(`Model ${model} failed: ${err.message}. Trying next candidate...`);
+            lastError = err;
+        }
+    }
+    throw lastError;
+}
+
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
 
@@ -40,14 +63,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
                         Job Description: ${jobDescription}
 `
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: zodToJsonSchema(interviewReportSchema),
-        }
-    })
+    const response = await generateWithFallback(prompt, interviewReportSchema)
 
     return JSON.parse(response.text)
 
@@ -102,14 +118,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
                         The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
                     `
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: zodToJsonSchema(resumePdfSchema),
-        }
-    })
+    const response = await generateWithFallback(prompt, resumePdfSchema)
 
 
     const jsonContent = JSON.parse(response.text)
