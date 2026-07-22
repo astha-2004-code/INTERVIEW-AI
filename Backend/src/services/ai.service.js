@@ -31,10 +31,14 @@ const interviewReportSchema = z.object({
     title: z.string().describe("The title of the job for which the interview report is generated"),
 })
 
-const MODEL_CANDIDATES = ["gemini-2.0-flash", "gemini-1.5-flash"];
+const MODEL_CANDIDATES = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite"
+];
 
 async function generateWithFallback(contents, schema) {
-    let lastError;
+    let errors = [];
     for (const model of MODEL_CANDIDATES) {
         try {
             const response = await ai.models.generateContent({
@@ -48,10 +52,11 @@ async function generateWithFallback(contents, schema) {
             return response;
         } catch (err) {
             console.warn(`Model ${model} failed: ${err.message}. Trying next candidate...`);
-            lastError = err;
+            errors.push({ model, message: err.message || String(err) });
         }
     }
-    throw lastError;
+    const combinedMessage = errors.map(e => `${e.model}: ${e.message}`).join(" | ");
+    throw new Error(`AI model generation failed: ${combinedMessage}`);
 }
 
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
