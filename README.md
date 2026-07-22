@@ -58,10 +58,12 @@ npm install
 Create a `.env` file in the Backend folder:
 
 ```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/interview-ai
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/interview-ai
 JWT_SECRET=your_jwt_secret_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
+GOOGLE_GENAI_API_KEY=your_google_genai_api_key_here
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGIN=http://localhost:5173
 ```
 
 Start the backend server:
@@ -77,6 +79,12 @@ The backend server will run on `http://localhost:5000`
 ```bash
 cd Frontend
 npm install
+```
+
+Create a `.env` file in the Frontend folder:
+
+```env
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
 Start the development server:
@@ -156,13 +164,18 @@ interview-ai/
 
 ### Backend (.env)
 ```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/interview-ai
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/interview-ai
 JWT_SECRET=your_secret_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
+GOOGLE_GENAI_API_KEY=your_google_genai_api_key_here
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGIN=http://localhost:5173
 ```
 
-**Note:** Frontend does not require any environment variables.
+### Frontend (.env)
+```env
+VITE_API_BASE_URL=http://localhost:3000
+```
 
 ## 🎯 Usage
 
