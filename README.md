@@ -154,15 +154,32 @@ interview-ai/
 ## 🔌 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/logout` - Logout user
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/logout` | Logout user |
+| GET | `/api/auth/get-me` | Get authenticated user details |
 
 ### Interview
-- `GET /api/interview/questions` - Get interview questions
-- `POST /api/interview/submit-response` - Submit interview response
-- `GET /api/interview/reports` - Get user's interview reports
-- `GET /api/interview/report/:id` - Get specific report
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/interview/` | Generate a new interview report |
+| GET | `/api/interview/` | Get all interview reports of the authenticated user |
+| GET | `/api/interview/report/:interviewId` | Get a specific interview report |
+| POST | `/api/interview/resume/pdf/:interviewReportId` | Generate interview report PDF |
+
+### Authentication Required
+
+The following endpoints require a valid JWT token:
+
+- `GET /api/auth/get-me`
+- `POST /api/interview/`
+- `GET /api/interview/`
+- `GET /api/interview/report/:interviewId`
+- `POST /api/interview/resume/pdf/:interviewReportId`
 
 ## 📝 Environment Variables
 
