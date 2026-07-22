@@ -32,13 +32,15 @@ const interviewReportSchema = z.object({
 })
 
 const MODEL_CANDIDATES = [
-    "gemini-2.5-flash",
     "gemini-2.0-flash",
-    "gemini-2.0-flash-lite"
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-8b"
 ];
 
 async function generateWithFallback(contents, schema) {
     let errors = [];
+    let isQuotaExceeded = false;
+
     for (const model of MODEL_CANDIDATES) {
         try {
             const response = await ai.models.generateContent({
@@ -51,10 +53,20 @@ async function generateWithFallback(contents, schema) {
             });
             return response;
         } catch (err) {
-            console.warn(`Model ${model} failed: ${err.message}. Trying next candidate...`);
-            errors.push({ model, message: err.message || String(err) });
+            const msg = err.message || String(err);
+            console.warn(`Model ${model} failed: ${msg}. Trying next candidate...`);
+            errors.push({ model, message: msg });
+
+            if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("Quota exceeded")) {
+                isQuotaExceeded = true;
+            }
         }
     }
+
+    if (isQuotaExceeded) {
+        throw new Error("Google AI (Gemini) API quota / rate limit exceeded (429). Please wait about 1 minute before trying again, or verify your Google GenAI API key in Google AI Studio.");
+    }
+
     const combinedMessage = errors.map(e => `${e.model}: ${e.message}`).join(" | ");
     throw new Error(`AI model generation failed: ${combinedMessage}`);
 }
