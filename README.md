@@ -61,9 +61,7 @@ Create a `.env` file in the Backend folder:
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/interview-ai
 JWT_SECRET=your_jwt_secret_key_here
-JWT_EXPIRY=7d
-NODE_ENV=development
-AI_API_KEY=your_ai_service_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 Start the backend server:
@@ -79,12 +77,6 @@ The backend server will run on `http://localhost:5000`
 ```bash
 cd Frontend
 npm install
-```
-
-Create a `.env` file in the Frontend folder:
-
-```env
-VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
 Start the development server:
@@ -166,16 +158,11 @@ interview-ai/
 ```env
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/interview-ai
-JWT_SECRET=your_secret_key
-JWT_EXPIRY=7d
-NODE_ENV=development
-AI_API_KEY=your_ai_key
+JWT_SECRET=your_secret_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-### Frontend (.env)
-```env
-VITE_API_BASE_URL=http://localhost:5000/api
-```
+**Note:** Frontend does not require any environment variables.
 
 ## 🎯 Usage
 
@@ -240,7 +227,7 @@ npm run lint
 
 ### Port Already in Use
 - Change `PORT` in Backend `.env`
-- Change port in Frontend `vite.config.js`
+- Configure port in Frontend `vite.config.js` if needed
 
 ## 🤝 Contributing
 
