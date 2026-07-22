@@ -5,17 +5,40 @@ import { useNavigate } from 'react-router'
 
 const Home = () => {
 
-    const { loading, generateReport,reports } = useInterview()
+    const { loading, generateReport, reports } = useInterview()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
+    const [ errorMessage, setErrorMessage ] = useState("")
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
 
     const handleGenerateReport = async () => {
-        const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        navigate(`/interview/${data._id}`)
+        setErrorMessage("")
+        const resumeFile = resumeInputRef.current?.files?.[ 0 ]
+
+        if (!jobDescription.trim()) {
+            setErrorMessage("Please provide a target job description.")
+            return
+        }
+
+        if (!resumeFile && !selfDescription.trim()) {
+            setErrorMessage("Please upload a resume or provide a quick self-description.")
+            return
+        }
+
+        try {
+            const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+            if (data && data._id) {
+                navigate(`/interview/${data._id}`)
+            } else {
+                setErrorMessage("Failed to generate report. Please try again.")
+            }
+        } catch (error) {
+            console.error(error)
+            const serverMsg = error.response?.data?.message || error.message || "An unexpected error occurred. Please try again."
+            setErrorMessage(serverMsg)
+        }
     }
 
     if (loading) {
@@ -111,6 +134,11 @@ const Home = () => {
                 </div>
 
                 {/* Card Footer */}
+                {errorMessage && (
+                    <div className='error-banner' style={{ padding: '0.75rem 1rem', margin: '0 1.5rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: '0.5rem', color: '#fca5a5', fontSize: '0.9rem' }}>
+                        {errorMessage}
+                    </div>
+                )}
                 <div className='interview-card__footer'>
                     <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
                     <button
