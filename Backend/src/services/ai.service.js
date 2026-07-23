@@ -1,6 +1,7 @@
 const { GoogleGenAI } = require("@google/genai")
 const { z } = require("zod")
 const { zodToJsonSchema } = require("zod-to-json-schema")
+const puppeteer = require("puppeteer")
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
@@ -31,46 +32,6 @@ const interviewReportSchema = z.object({
     title: z.string().describe("The title of the job for which the interview report is generated"),
 })
 
-const MODEL_CANDIDATES = [
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-flash-8b"
-];
-
-async function generateWithFallback(contents, schema) {
-    let errors = [];
-    let isQuotaExceeded = false;
-
-    for (const model of MODEL_CANDIDATES) {
-        try {
-            const response = await ai.models.generateContent({
-                model,
-                contents,
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: zodToJsonSchema(schema),
-                }
-            });
-            return response;
-        } catch (err) {
-            const msg = err.message || String(err);
-            console.warn(`Model ${model} failed: ${msg}. Trying next candidate...`);
-            errors.push({ model, message: msg });
-
-            if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("Quota exceeded")) {
-                isQuotaExceeded = true;
-            }
-        }
-    }
-
-    if (isQuotaExceeded) {
-        throw new Error("Google AI (Gemini) API quota / rate limit exceeded (429). Please wait about 1 minute before trying again, or verify your Google GenAI API key in Google AI Studio.");
-    }
-
-    const combinedMessage = errors.map(e => `${e.model}: ${e.message}`).join(" | ");
-    throw new Error(`AI model generation failed: ${combinedMessage}`);
-}
-
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
 
@@ -80,7 +41,14 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
                         Job Description: ${jobDescription}
 `
 
-    const response = await generateWithFallback(prompt, interviewReportSchema)
+    const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: zodToJsonSchema(interviewReportSchema),
+        }
+    })
 
     return JSON.parse(response.text)
 
@@ -90,15 +58,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 
 
 async function generatePdfFromHtml(htmlContent) {
-    let puppeteer;
-    try {
-        puppeteer = require("puppeteer");
-    } catch (e) {
-        throw new Error("Puppeteer is not available in this environment.");
-    }
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
+    const browser = await puppeteer.launch()
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: "networkidle0" })
 
@@ -135,7 +95,14 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
                         The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
                     `
 
-    const response = await generateWithFallback(prompt, resumePdfSchema)
+    const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: zodToJsonSchema(resumePdfSchema),
+        }
+    })
 
 
     const jsonContent = JSON.parse(response.text)

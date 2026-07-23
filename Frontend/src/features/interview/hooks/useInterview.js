@@ -17,54 +17,46 @@ export const useInterview = () => {
 
     const generateReport = async ({ jobDescription, selfDescription, resumeFile }) => {
         setLoading(true)
+        let response = null
         try {
-            const response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
-            if (response && response.interviewReport) {
-                setReport(response.interviewReport)
-                return response.interviewReport
-            } else {
-                throw new Error(response?.message || "Failed to generate report")
-            }
+            response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
+            setReport(response.interviewReport)
         } catch (error) {
-            console.error("generateReport error:", error)
-            throw error
+            console.log(error)
         } finally {
             setLoading(false)
         }
+
+        return response.interviewReport
     }
 
     const getReportById = async (interviewId) => {
         setLoading(true)
+        let response = null
         try {
-            const response = await getInterviewReportById(interviewId)
-            if (response && response.interviewReport) {
-                setReport(response.interviewReport)
-                return response.interviewReport
-            }
-            return null
+            response = await getInterviewReportById(interviewId)
+            setReport(response.interviewReport)
         } catch (error) {
-            console.error("getReportById error:", error)
-            return null
+            console.log(error)
         } finally {
             setLoading(false)
         }
+        return response.interviewReport
     }
 
     const getReports = async () => {
         setLoading(true)
+        let response = null
         try {
-            const response = await getAllInterviewReports()
-            if (response && response.interviewReports) {
-                setReports(response.interviewReports)
-                return response.interviewReports
-            }
-            return []
+            response = await getAllInterviewReports()
+            setReports(response.interviewReports)
         } catch (error) {
-            console.error("getReports error:", error)
-            return []
+            console.log(error)
         } finally {
             setLoading(false)
         }
+
+        return response.interviewReports
     }
 
     const getResumePdf = async (interviewReportId) => {
