@@ -1,11 +1,9 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm install --prefix Backend"
+    "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "npm start --prefix Backend",
     "healthcheckPath": "/api/health"
   }
 }
