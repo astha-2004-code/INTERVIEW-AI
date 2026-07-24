@@ -3,9 +3,7 @@ import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
 
-
 export const useInterview = () => {
-
     const context = useContext(InterviewContext)
     const { interviewId } = useParams()
 
@@ -13,66 +11,77 @@ export const useInterview = () => {
         throw new Error("useInterview must be used within an InterviewProvider")
     }
 
-    const { loading, setLoading, report, setReport, reports, setReports } = context
+    const { loading, setLoading, report, setReport, reports, setReports, error, setError } = context
 
     const generateReport = async ({ jobDescription, selfDescription, resumeFile }) => {
         setLoading(true)
-        let response = null
+        setError(null)
         try {
-            response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
+            const response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
             setReport(response.interviewReport)
-        } catch (error) {
-            console.log(error)
+            return response.interviewReport
+        } catch (err) {
+            console.error("Error in generateReport hook:", err)
+            const errMsg = err.response?.data?.message || err.message || "Failed to generate interview strategy."
+            setError(errMsg)
+            throw new Error(errMsg)
         } finally {
             setLoading(false)
         }
-
-        return response.interviewReport
     }
 
     const getReportById = async (interviewId) => {
         setLoading(true)
-        let response = null
+        setError(null)
         try {
-            response = await getInterviewReportById(interviewId)
+            const response = await getInterviewReportById(interviewId)
             setReport(response.interviewReport)
-        } catch (error) {
-            console.log(error)
+            return response.interviewReport
+        } catch (err) {
+            console.error("Error in getReportById hook:", err)
+            const errMsg = err.response?.data?.message || err.message || "Failed to fetch interview report."
+            setError(errMsg)
+            throw new Error(errMsg)
         } finally {
             setLoading(false)
         }
-        return response.interviewReport
     }
 
     const getReports = async () => {
         setLoading(true)
-        let response = null
+        setError(null)
         try {
-            response = await getAllInterviewReports()
+            const response = await getAllInterviewReports()
             setReports(response.interviewReports)
-        } catch (error) {
-            console.log(error)
+            return response.interviewReports
+        } catch (err) {
+            console.error("Error in getReports hook:", err)
+            const errMsg = err.response?.data?.message || err.message || "Failed to fetch interview plans."
+            setError(errMsg)
+            throw new Error(errMsg)
         } finally {
             setLoading(false)
         }
-
-        return response.interviewReports
     }
 
     const getResumePdf = async (interviewReportId) => {
         setLoading(true)
-        let response = null
+        setError(null)
         try {
-            response = await generateResumePdf({ interviewReportId })
+            const response = await generateResumePdf({ interviewReportId })
             const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
             const link = document.createElement("a")
             link.href = url
             link.setAttribute("download", `resume_${interviewReportId}.pdf`)
             document.body.appendChild(link)
             link.click()
+            document.body.removeChild(link)
         }
-        catch (error) {
-            console.log(error)
+        catch (err) {
+            console.error("Error in getResumePdf hook:", err)
+            const errMsg = err.response?.data?.message || err.message || "Failed to download PDF."
+            setError(errMsg)
+            throw new Error(errMsg)
         } finally {
             setLoading(false)
         }
@@ -86,6 +95,5 @@ export const useInterview = () => {
         }
     }, [ interviewId ])
 
-    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf }
-
+    return { loading, report, reports, error, setError, generateReport, getReportById, getReports, getResumePdf }
 }

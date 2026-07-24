@@ -4,8 +4,8 @@ import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
 
 const Home = () => {
-
-    const { loading, generateReport,reports } = useInterview()
+    const { loading, error, setError, generateReport, reports } = useInterview()
+    const [ localError, setLocalError ] = useState(null)
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const resumeInputRef = useRef()
@@ -13,22 +13,44 @@ const Home = () => {
     const navigate = useNavigate()
 
     const handleGenerateReport = async () => {
-        const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        navigate(`/interview/${data._id}`)
+        setLocalError(null)
+        setError(null)
+
+        if (!jobDescription.trim()) {
+            setLocalError("Target Job Description is required.")
+            return
+        }
+
+        const resumeFile = resumeInputRef.current?.files?.[0]
+        if (!resumeFile && !selfDescription.trim()) {
+            setLocalError("Either a Resume upload or a Quick Self-Description is required to build your plan.")
+            return
+        }
+
+        try {
+            const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+            if (data && data._id) {
+                navigate(`/interview/${data._id}`)
+            } else {
+                setLocalError("Failed to generate plan. No response data returned.")
+            }
+        } catch (err) {
+            setLocalError(err.message || "Failed to generate interview strategy.")
+        }
     }
 
     if (loading) {
         return (
             <main className='loading-screen'>
-                <h1>Loading your interview plan...</h1>
+                <div className='spinner'></div>
+                <h1>Analyzing requirements &amp; generating your custom plan...</h1>
+                <p>This may take up to 30 seconds. Please do not close this window.</p>
             </main>
         )
     }
 
     return (
         <div className='home-page'>
-
             {/* Page Header */}
             <header className='page-header'>
                 <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
@@ -37,8 +59,22 @@ const Home = () => {
 
             {/* Main Card */}
             <div className='interview-card'>
-                <div className='interview-card__body'>
+                {localError && (
+                    <div className="error-banner">
+                        <span className="error-icon">⚠</span>
+                        <p>{localError}</p>
+                        <button className="close-btn" onClick={() => setLocalError(null)}>×</button>
+                    </div>
+                )}
+                {error && !localError && (
+                    <div className="error-banner">
+                        <span className="error-icon">⚠</span>
+                        <p>{error}</p>
+                        <button className="close-btn" onClick={() => setError(null)}>×</button>
+                    </div>
+                )}
 
+                <div className='interview-card__body'>
                     {/* Left Panel - Job Description */}
                     <div className='panel panel--left'>
                         <div className='panel__header'>
@@ -49,12 +85,13 @@ const Home = () => {
                             <span className='badge badge--required'>Required</span>
                         </div>
                         <textarea
+                            value={jobDescription}
                             onChange={(e) => { setJobDescription(e.target.value) }}
                             className='panel__textarea'
                             placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
                             maxLength={5000}
                         />
-                        <div className='char-counter'>0 / 5000 chars</div>
+                        <div className='char-counter'>{jobDescription.length} / 5000 chars</div>
                     </div>
 
                     {/* Vertical Divider */}
@@ -79,9 +116,19 @@ const Home = () => {
                                 <span className='dropzone__icon'>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
                                 </span>
-                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
-                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                                <p className='dropzone__title'>
+                                    {resumeInputRef.current?.files?.[0] ? resumeInputRef.current.files[0].name : 'Click to upload or drag & drop'}
+                                </p>
+                                <p className='dropzone__subtitle'>PDF or DOCX (Max 3MB)</p>
+                                <input 
+                                    ref={resumeInputRef} 
+                                    hidden 
+                                    type='file' 
+                                    id='resume' 
+                                    name='resume' 
+                                    accept='.pdf,.docx' 
+                                    onChange={() => setLocalError(null)}
+                                />
                             </label>
                         </div>
 
@@ -92,6 +139,7 @@ const Home = () => {
                         <div className='self-description'>
                             <label className='section-label' htmlFor='selfDescription'>Quick Self-Description</label>
                             <textarea
+                                value={selfDescription}
                                 onChange={(e) => { setSelfDescription(e.target.value) }}
                                 id='selfDescription'
                                 name='selfDescription'
@@ -115,15 +163,17 @@ const Home = () => {
                     <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
                     <button
                         onClick={handleGenerateReport}
-                        className='generate-btn'>
+                        className='generate-btn'
+                        disabled={loading}
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
-                        Generate My Interview Strategy
+                        {loading ? 'Generating Strategy...' : 'Generate My Interview Strategy'}
                     </button>
                 </div>
             </div>
 
             {/* Recent Reports List */}
-            {reports.length > 0 && (
+            {reports && reports.length > 0 && (
                 <section className='recent-reports'>
                     <h2>My Recent Interview Plans</h2>
                     <ul className='reports-list'>

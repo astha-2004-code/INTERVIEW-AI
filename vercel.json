@@ -19,8 +19,16 @@
       "dest": "Backend/api/index.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/assets/(.*)",
+      "dest": "Frontend/assets/$1"
+    },
+    {
+      "src": "/((?!api|assets).*\\.[a-zA-Z0-9]+)$",
       "dest": "Frontend/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "Frontend/index.html"
     }
   ],
   "functions": {
