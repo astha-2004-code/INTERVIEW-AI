@@ -73,9 +73,13 @@ async function generatePdfFromHtml(htmlContent) {
         });
     } else {
         const puppeteerLocal = require("puppeteer");
-        browser = await puppeteerLocal.launch({
+        const launchArgs = {
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
+        };
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchArgs.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        browser = await puppeteerLocal.launch(launchArgs);
     }
 
     const page = await browser.newPage();
