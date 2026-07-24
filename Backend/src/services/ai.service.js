@@ -58,7 +58,9 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 
 async function generatePdfFromHtml(htmlContent) {
     let browser;
-    if (process.env.NODE_ENV === "production") {
+    const isServerless = process.env.VERCEL === "1" || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+    if (isServerless) {
         const puppeteerCore = require("puppeteer-core");
         const chromiumModule = await import("@sparticuz/chromium");
         const chromium = chromiumModule.default;
@@ -71,7 +73,9 @@ async function generatePdfFromHtml(htmlContent) {
         });
     } else {
         const puppeteerLocal = require("puppeteer");
-        browser = await puppeteerLocal.launch();
+        browser = await puppeteerLocal.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
     }
 
     const page = await browser.newPage();

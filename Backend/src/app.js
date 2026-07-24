@@ -8,6 +8,15 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 
+// Health check endpoint (bypasses database and CORS middleware)
+app.get("/api/health", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        message: "Server is healthy",
+        timestamp: new Date()
+    })
+})
+
 const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
 
 app.use(cors({
