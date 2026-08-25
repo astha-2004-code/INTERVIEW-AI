@@ -1,7 +1,6 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../auth.context";
-import { login, register, logout, getMe } from "../services/auth.api";
-import { disconnectSocket } from "../../../services/socket.service";
+import { login, register, logout } from "../services/auth.api";
 
 export const useAuth = () => {
     const context = useContext(AuthContext)
@@ -51,7 +50,6 @@ export const useAuth = () => {
         try {
             await logout()
             setUser(null)
-            disconnectSocket()
         } catch (err) {
             console.error("Error in handleLogout hook:", err)
             const errMsg = err.response?.data?.message || err.message || "Logout failed."
@@ -61,22 +59,6 @@ export const useAuth = () => {
             setLoading(false)
         }
     }
-
-    useEffect(() => {
-        const getAndSetUser = async () => {
-            try {
-                const data = await getMe()
-                setUser(data.user)
-            } catch (err) {
-                // Ignore silent errors during initialization (e.g. guest users)
-                setUser(null)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        getAndSetUser()
-    }, [setUser, setLoading])
 
     return { user, loading, error, setError, handleRegister, handleLogin, handleLogout }
 }
