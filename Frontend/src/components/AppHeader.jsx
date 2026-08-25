@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import NotificationBell from '../features/notifications/components/NotificationBell';
 
-const AppHeader = ({ title = "Interview AI", subtitle = "" }) => {
+const AppHeader = ({ title = "INTERVIEW-AI", subtitle = "" }) => {
     const { handleLogout, user } = useAuth();
     const navigate = useNavigate();
 

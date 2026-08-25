@@ -96,7 +96,7 @@ const Interview = () => {
 
     return (
         <div className='interview-page'>
-            <AppHeader title="Interview AI" subtitle={report.title} />
+            <AppHeader title="INTERVIEW-AI" subtitle={report.title} />
             
             {error && (
                 <div className="error-banner">

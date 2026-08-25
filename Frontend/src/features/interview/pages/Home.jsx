@@ -115,7 +115,7 @@ const Home = () => {
     return (
         <div className='home-page'>
             {/* Page Header */}
-            <AppHeader title="Interview AI" subtitle="Create Your Custom Interview Plan" />
+            <AppHeader title="INTERVIEW-AI" subtitle="Create Your Custom Interview Plan" />
 
             {/* Main Card */}
             <div className='interview-card'>
