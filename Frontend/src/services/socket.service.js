@@ -15,7 +15,7 @@ export const connectSocket = () => {
         reconnectionAttempts: 10,
         reconnectionDelay: 1000,
         timeout: 60000,
-        transports: ['websocket'], // Force websocket to bypass Render long-polling proxy issues
+        transports: ['polling', 'websocket'], // Allow polling fallback to prevent "transport close" on proxy timeouts
     });
 
     socket.on("connect", () => {
@@ -28,6 +28,18 @@ export const connectSocket = () => {
 
     socket.on("disconnect", (reason) => {
         console.log("Socket disconnected:", reason);
+    });
+
+    socket.io.on("reconnect_attempt", (attempt) => {
+        console.log(`Socket reconnect attempt: ${attempt}`);
+    });
+
+    socket.io.on("reconnect", (attempt) => {
+        console.log(`Socket reconnected successfully after ${attempt} attempts`);
+    });
+
+    socket.io.on("reconnect_error", (err) => {
+        console.error("Socket reconnect error:", err.message);
     });
 
     return socket;
