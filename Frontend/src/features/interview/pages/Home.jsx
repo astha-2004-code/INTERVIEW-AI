@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
@@ -12,6 +12,7 @@ const Home = () => {
     const [ generationProgress, setGenerationProgress ] = useState(0)
     const [ generationMessage, setGenerationMessage ] = useState("Initializing...")
     const [ activeStage, setActiveStage ] = useState("")
+    const [ resumeFileName, setResumeFileName ] = useState(null)
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
@@ -46,7 +47,7 @@ const Home = () => {
                 setGenerationMessage(data.message)
                 setActiveStage(data.stage)
             },
-            onCompleted: (data) => {
+            onCompleted: () => {
                 setGenerationProgress(100)
                 setGenerationMessage("Complete!")
                 setActiveStage("completed")
@@ -167,7 +168,7 @@ const Home = () => {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
                                 </span>
                                 <p className='dropzone__title'>
-                                    {resumeInputRef.current?.files?.[0] ? resumeInputRef.current.files[0].name : 'Click to upload or drag & drop'}
+                                    {resumeFileName ? resumeFileName : 'Click to upload or drag & drop'}
                                 </p>
                                 <p className='dropzone__subtitle'>PDF or DOCX (Max 3MB)</p>
                                 <input 
@@ -177,7 +178,14 @@ const Home = () => {
                                     id='resume' 
                                     name='resume' 
                                     accept='.pdf,.docx' 
-                                    onChange={() => setLocalError(null)}
+                                    onChange={(e) => {
+                                        setLocalError(null);
+                                        if (e.target.files && e.target.files[0]) {
+                                            setResumeFileName(e.target.files[0].name);
+                                        } else {
+                                            setResumeFileName(null);
+                                        }
+                                    }}
                                 />
                             </label>
                         </div>
