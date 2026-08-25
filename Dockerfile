@@ -22,5 +22,5 @@ RUN npm install --prefix Backend
 COPY Backend/ ./Backend/
 WORKDIR /app/Backend
 
-EXPOSE 3000
+EXPOSE 5000
 CMD ["npm", "start"]
