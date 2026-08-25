@@ -1,6 +1,7 @@
 import { useContext, useEffect } from "react";
 import { AuthContext } from "../auth.context";
 import { login, register, logout, getMe } from "../services/auth.api";
+import { disconnectSocket } from "../../../services/socket.service";
 
 export const useAuth = () => {
     const context = useContext(AuthContext)
@@ -50,6 +51,7 @@ export const useAuth = () => {
         try {
             await logout()
             setUser(null)
+            disconnectSocket()
         } catch (err) {
             console.error("Error in handleLogout hook:", err)
             const errMsg = err.response?.data?.message || err.message || "Logout failed."
