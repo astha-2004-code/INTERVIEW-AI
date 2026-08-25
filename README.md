@@ -363,7 +363,6 @@ INTERVIEW-AI/
 │   └── package.json
 │
 ├── Dockerfile
-├── railway.json
 ├── vercel.json
 └── README.md
 ```
