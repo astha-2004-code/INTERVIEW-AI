@@ -2,19 +2,29 @@ const pdfParse = require("pdf-parse")
 const { generateInterviewReport, generateResumePdf } = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
 const userModel = require("../models/user.model")
+const { emitInterviewProgress, emitInterviewCompleted, emitInterviewError, emitInterviewStarted } = require("../socket/socket")
 
 /**
  * @description Controller to generate interview report based on user self description, resume and job description.
  */
 async function generateInterViewReportController(req, res) {
+    const { selfDescription, jobDescription, generationId } = req.body
+    const userId = req.user.id
+
     try {
+        if (generationId) {
+            emitInterviewStarted({ userId, generationId, message: "Starting interview analysis..." })
+        }
+
         let resumeText = ""
         if (req.file && req.file.buffer) {
+            if (generationId) {
+                emitInterviewProgress({ userId, generationId, stage: "resume_parsing", progress: 15, message: "Uploading and processing your profile..." })
+                emitInterviewProgress({ userId, generationId, stage: "resume_parsing", progress: 30, message: "Parsing your resume..." })
+            }
             const parsed = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
             resumeText = parsed.text || ""
         }
-
-        const { selfDescription, jobDescription } = req.body
 
         if (!jobDescription) {
             return res.status(400).json({
@@ -28,19 +38,34 @@ async function generateInterViewReportController(req, res) {
             })
         }
 
+        if (generationId) {
+            emitInterviewProgress({ userId, generationId, stage: "analyzing_job", progress: 50, message: "Analyzing the job description..." })
+            emitInterviewProgress({ userId, generationId, stage: "generating_questions", progress: 70, message: "Generating personalized technical and behavioral questions..." })
+            emitInterviewProgress({ userId, generationId, stage: "creating_roadmap", progress: 85, message: "Creating your preparation roadmap..." })
+        }
+
         const interViewReportByAi = await generateInterviewReport({
             resume: resumeText,
             selfDescription,
             jobDescription
         })
 
+        if (generationId) {
+            emitInterviewProgress({ userId, generationId, stage: "saving_strategy", progress: 95, message: "Saving your interview strategy..." })
+        }
+
         const interviewReport = await interviewReportModel.create({
-            user: req.user.id,
+            user: userId,
             resume: resumeText,
             selfDescription,
             jobDescription,
             ...interViewReportByAi
         })
+
+        if (generationId) {
+            emitInterviewProgress({ userId, generationId, stage: "completed", progress: 100, message: "Interview strategy generated successfully." })
+            emitInterviewCompleted({ userId, generationId, interviewReport })
+        }
 
         return res.status(201).json({
             message: "Interview report generated successfully.",
@@ -48,6 +73,9 @@ async function generateInterViewReportController(req, res) {
         })
     } catch (err) {
         console.error("Error in generateInterViewReportController:", err)
+        if (generationId) {
+            emitInterviewError({ userId, generationId, message: err.message || "Failed to generate interview strategy." })
+        }
         return res.status(500).json({
             message: "Failed to generate interview strategy.",
             error: err.message

@@ -34,6 +34,23 @@ Open the deployed app: https://interview-ai-prep-zeta.vercel.app/login
 - **Context API** - State management
 - **SCSS** - Styling
 - **Axios** - HTTP client
+- **Socket.IO Client** - Real-time progress updates
+
+## ⚡ Real-Time Architecture with Socket.IO
+
+The application uses **Socket.IO** to provide real-time updates while the AI interview report is being generated, without altering the existing REST flow.
+
+**Event Flow:**
+1. Frontend calls REST API `POST /api/interview/` with a unique `generationId`.
+2. REST API → Express Controller → Gemini API → MongoDB.
+3. Simultaneously, the persistent Backend Socket.IO server emits progress events to an authenticated user-specific room (`user:<userId>`).
+4. React real-time progress UI subscribes to the Socket.IO events and updates visual progress.
+
+**Why Socket.IO?**
+- Provides persistent bidirectional communication.
+- Greatly improves user experience during long-running AI generation (up to 30s).
+- Decouples progress notifications from the HTTP response.
+- Ensures events are strictly broadcasted to authenticated user-specific rooms.
 
 ## 📋 Prerequisites
 
@@ -196,6 +213,7 @@ CORS_ORIGIN=http://localhost:5173
 ### Frontend (.env)
 ```env
 VITE_API_BASE_URL=http://localhost:3000
+VITE_SOCKET_URL=http://localhost:3000
 ```
 
 ## 🎯 Usage

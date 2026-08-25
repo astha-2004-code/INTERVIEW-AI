@@ -1,13 +1,17 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+import { subscribeToInterviewProgress } from '../../../services/socket.service.js'
 
 const Home = () => {
     const { loading, error, setError, generateReport, reports } = useInterview()
     const [ localError, setLocalError ] = useState(null)
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
+    const [ generationProgress, setGenerationProgress ] = useState(0)
+    const [ generationMessage, setGenerationMessage ] = useState("Initializing...")
+    const [ activeStage, setActiveStage ] = useState("")
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
@@ -27,14 +31,42 @@ const Home = () => {
             return
         }
 
+        const generationId = Date.now().toString() + Math.random().toString(36).substring(2)
+        setGenerationProgress(0)
+        setGenerationMessage("Connecting...")
+        setActiveStage("starting")
+
+        const unsubscribe = subscribeToInterviewProgress(generationId, {
+            onStarted: (data) => {
+                setGenerationMessage(data.message)
+                setActiveStage("started")
+            },
+            onProgress: (data) => {
+                setGenerationProgress(data.progress)
+                setGenerationMessage(data.message)
+                setActiveStage(data.stage)
+            },
+            onCompleted: (data) => {
+                setGenerationProgress(100)
+                setGenerationMessage("Complete!")
+                setActiveStage("completed")
+                // we can also navigate here if we want, but REST resolves too
+            },
+            onError: (data) => {
+                setLocalError(data.message)
+            }
+        })
+
         try {
-            const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+            const data = await generateReport({ jobDescription, selfDescription, resumeFile, generationId })
+            unsubscribe()
             if (data && data._id) {
                 navigate(`/interview/${data._id}`)
             } else {
                 setLocalError("Failed to generate plan. No response data returned.")
             }
         } catch (err) {
+            unsubscribe()
             setLocalError(err.message || "Failed to generate interview strategy.")
         }
     }
@@ -42,9 +74,27 @@ const Home = () => {
     if (loading) {
         return (
             <main className='loading-screen'>
-                <div className='spinner'></div>
-                <h1>Analyzing requirements &amp; generating your custom plan...</h1>
-                <p>This may take up to 30 seconds. Please do not close this window.</p>
+                <div className='progress-container' style={{ maxWidth: '400px', margin: '0 auto', textAlign: 'left', background: '#fff', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                    <h2 style={{ marginBottom: '1.5rem', color: '#1a1f27', textAlign: 'center' }}>Generating Your Interview Strategy</h2>
+                    
+                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '2rem' }}>
+                        <div style={{ height: '100%', width: `${generationProgress}%`, background: '#2563eb', transition: 'width 0.5s ease-in-out' }}></div>
+                    </div>
+                    
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.95rem', color: '#4b5563', lineHeight: 2.2 }}>
+                        <li>{generationProgress >= 15 ? '✓' : (activeStage === 'starting' ? '●' : '○')} Starting interview analysis</li>
+                        <li>{generationProgress >= 50 ? '✓' : (activeStage === 'resume_parsing' ? '●' : '○')} Parsing resume</li>
+                        <li>{generationProgress >= 70 ? '✓' : (activeStage === 'analyzing_job' ? '●' : '○')} Analyzing job description</li>
+                        <li>{generationProgress >= 85 ? '✓' : (activeStage === 'generating_questions' ? '●' : '○')} Generating interview questions</li>
+                        <li>{generationProgress >= 95 ? '✓' : (activeStage === 'creating_roadmap' ? '●' : '○')} Creating preparation roadmap</li>
+                        <li>{generationProgress >= 100 ? '✓' : (activeStage === 'saving_strategy' ? '●' : '○')} Saving your strategy</li>
+                    </ul>
+
+                    <div style={{ marginTop: '2rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', fontSize: '0.9rem', color: '#334155', fontWeight: 500, textAlign: 'center' }}>
+                        Current status:<br/>
+                        <span style={{ color: '#2563eb', display: 'inline-block', marginTop: '0.5rem' }}>"{generationMessage}"</span>
+                    </div>
+                </div>
             </main>
         )
     }
