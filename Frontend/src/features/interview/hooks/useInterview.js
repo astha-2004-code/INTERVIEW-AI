@@ -1,4 +1,4 @@
-import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf } from "../services/interview.api"
+import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf, deleteInterviewReport } from "../services/interview.api"
 import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { AuthContext } from "../../auth/auth.context"
@@ -115,6 +115,23 @@ export const useInterview = () => {
         }
     }
 
+    const deleteReport = async (interviewId) => {
+        setLoading(true)
+        setError(null)
+        try {
+            await deleteInterviewReport(interviewId)
+            setReports((prevReports) => prevReports.filter(r => r._id !== interviewId))
+            return true
+        } catch (err) {
+            console.error("Error in deleteReport hook:", err)
+            const errMsg = err.response?.data?.message || err.message || "Failed to delete interview plan."
+            setError(errMsg)
+            throw new Error(errMsg)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     useEffect(() => {
         if (interviewId) {
             getReportById(interviewId)
@@ -123,5 +140,5 @@ export const useInterview = () => {
         }
     }, [ interviewId ])
 
-    return { loading, report, reports, error, setError, generateReport, getReportById, getReports, getResumePdf }
+    return { loading, report, reports, error, setError, generateReport, getReportById, getReports, getResumePdf, deleteReport }
 }

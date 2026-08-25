@@ -6,9 +6,11 @@ import { subscribeToInterviewProgress } from '../../../services/socket.service.j
 import { useAuth } from '../../auth/hooks/useAuth.js'
 
 const Home = () => {
-    const { loading, error, setError, generateReport, reports } = useInterview()
+    const { loading, error, setError, generateReport, reports, deleteReport } = useInterview()
     const { handleLogout } = useAuth()
     const [ localError, setLocalError ] = useState(null)
+    const [ itemToDelete, setItemToDelete ] = useState(null)
+    const [ isDeleting, setIsDeleting ] = useState(false)
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const [ generationProgress, setGenerationProgress ] = useState(0)
@@ -267,6 +269,16 @@ const Home = () => {
                     <ul className='reports-list'>
                         {reports.map(report => (
                             <li key={report._id} className='report-item' onClick={() => navigate(`/interview/${report._id}`)}>
+                                <button 
+                                    className="delete-icon-btn" 
+                                    aria-label="Delete plan"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setItemToDelete(report);
+                                    }}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                </button>
                                 <h3>{report.title || 'Untitled Position'}</h3>
                                 <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
                                 <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</p>
@@ -282,6 +294,37 @@ const Home = () => {
                 <a href='#'>Terms of Service</a>
                 <a href='#'>Help Center</a>
             </footer>
+
+            {/* Delete Confirmation Modal */}
+            {itemToDelete && (
+                <div className="modal-overlay" onClick={() => !isDeleting && setItemToDelete(null)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <h2>Delete Interview Plan?</h2>
+                        <p>Are you sure you want to delete <strong>{itemToDelete.title || 'this plan'}</strong>? This action cannot be undone.</p>
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={() => setItemToDelete(null)} disabled={isDeleting}>Cancel</button>
+                            <button 
+                                className="btn-delete" 
+                                disabled={isDeleting}
+                                onClick={async () => {
+                                    setIsDeleting(true);
+                                    try {
+                                        await deleteReport(itemToDelete._id);
+                                        setItemToDelete(null);
+                                    } catch (err) {
+                                        setLocalError(err.message);
+                                        setItemToDelete(null);
+                                    } finally {
+                                        setIsDeleting(false);
+                                    }
+                                }}
+                            >
+                                {isDeleting ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
