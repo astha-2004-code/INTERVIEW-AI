@@ -1,10 +1,10 @@
 const express = require('express');
 const { getNotifications, markAsRead, markAllAsRead, deleteNotification } = require('../controllers/notification.controller');
-const verifyUser = require('../middleware/auth.middleware');
+const { authUser } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-router.use(verifyUser);
+router.use(authUser);
 
 router.get('/', getNotifications);
 router.patch('/read-all', markAllAsRead);
