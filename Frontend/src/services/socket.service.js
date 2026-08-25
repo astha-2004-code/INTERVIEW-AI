@@ -5,13 +5,17 @@ let socket = null;
 export const connectSocket = () => {
     if (socket) return socket;
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE_URL || "";
+    let rawUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE_URL || "";
+    // If the provided URL ends with /api, strip it so Socket.IO connects to the root domain
+    const socketUrl = rawUrl.replace(/\/api\/?$/, "");
     
     socket = io(socketUrl, {
         withCredentials: true,
         reconnection: true,
-        reconnectionAttempts: 5,
+        reconnectionAttempts: 10,
         reconnectionDelay: 1000,
+        timeout: 60000,
+        transports: ['websocket'], // Force websocket to bypass Render long-polling proxy issues
     });
 
     socket.on("connect", () => {
@@ -70,10 +74,24 @@ export const subscribeToInterviewProgress = (generationId, callbacks) => {
         }
     };
 
+    const onDisconnect = (reason) => {
+        if (callbacks.onDisconnect) {
+            callbacks.onDisconnect(reason);
+        }
+    };
+
+    const onReconnect = () => {
+        if (callbacks.onReconnect) {
+            callbacks.onReconnect();
+        }
+    };
+
     s.on("interview:progress", onProgress);
     s.on("interview:completed", onCompleted);
     s.on("interview:error", onError);
     s.on("interview:started", onStarted);
+    s.on("disconnect", onDisconnect);
+    s.io.on("reconnect", onReconnect); // Use s.io for reconnection events
 
     // Return a cleanup function
     return () => {
@@ -81,5 +99,7 @@ export const subscribeToInterviewProgress = (generationId, callbacks) => {
         s.off("interview:completed", onCompleted);
         s.off("interview:error", onError);
         s.off("interview:started", onStarted);
+        s.off("disconnect", onDisconnect);
+        s.io.off("reconnect", onReconnect);
     };
 };

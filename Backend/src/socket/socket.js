@@ -18,6 +18,9 @@ const initSocket = (server) => {
     }
 
     io = new Server(server, {
+        pingTimeout: 60000,
+        pingInterval: 25000,
+        transports: ['websocket', 'polling'],
         cors: {
             origin: function (origin, callback) {
                 if (!origin) return callback(null, true);

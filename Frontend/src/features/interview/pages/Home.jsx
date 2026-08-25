@@ -55,6 +55,17 @@ const Home = () => {
             },
             onError: (data) => {
                 setLocalError(data.message)
+            },
+            onDisconnect: (reason) => {
+                // If it disconnects during generation, gracefully fallback
+                if (activeStage !== "completed") {
+                    setGenerationMessage("Connection interrupted. Still generating in the background, please wait...")
+                }
+            },
+            onReconnect: () => {
+                if (activeStage !== "completed") {
+                    setGenerationMessage("Connection restored. Resuming progress...")
+                }
             }
         })
 
