@@ -1,306 +1,392 @@
 # INTERVIEW-AI 🎤
 
-An AI-powered interview preparation platform that analyzes a candidate's
-resume or self-description against a target job description and
-generates a personalized interview strategy.
+> An AI-powered interview preparation and live mock-interview platform that turns a candidate's resume and target job description into a personalized interview strategy, preparation roadmap, tailored resume, and real-time answer feedback.
+
+[![React](https://img.shields.io/badge/Frontend-React%2019-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Build-Vite-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Socket.IO](https://img.shields.io/badge/Realtime-Socket.IO-010101?logo=socket.io&logoColor=white)](https://socket.io/)
+[![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
+
+---
 
 ## 🌐 Live Demo
 
 **Live application:** https://interview-ai-prep-zeta.vercel.app/login
 
-> Replace the live URL above if the deployment URL changes.
+> If the deployment URL changes, update this link.
 
-------------------------------------------------------------------------
+---
 
-## ✨ Overview
+## 📌 Table of Contents
 
-INTERVIEW-AI is a full-stack web application built to make interview
-preparation more personalized.
+- [Overview](#-overview)
+- [Why INTERVIEW-AI](#-why-interview-ai)
+- [Features](#-features)
+- [End-to-End Workflow](#-end-to-end-workflow)
+- [AI Capabilities](#-ai-capabilities)
+- [System Architecture](#-system-architecture)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Data Model](#-data-model)
+- [REST API](#-rest-api)
+- [Socket.IO Events](#-socketio-events)
+- [Getting Started](#-getting-started)
+- [Environment Variables](#-environment-variables)
+- [Running Locally](#-running-locally)
+- [Deployment](#-deployment)
+- [Security](#-security)
+- [Error Handling](#-error-handling)
+- [Performance and Engineering Decisions](#-performance-and-engineering-decisions)
+- [Known Considerations](#-known-considerations)
+- [Testing](#-testing)
+- [Future Improvements](#-future-improvements)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-Instead of preparing from generic interview questions, a candidate
-provides:
+---
 
--   A target **job description**
--   Their **resume** (PDF) and/or self-description
+## 🧠 Overview
 
-The backend extracts the resume text, sends the candidate information
-and job description to **Google Gemini**, and generates a structured
-interview report containing:
+INTERVIEW-AI is a full-stack AI interview-preparation platform designed around a simple idea:
 
--   Candidate-job **match score**
--   **Technical interview questions**
--   **Behavioral interview questions**
--   **Skill gaps** with severity
--   A **day-wise preparation plan**
--   Target **job title**
+**Interview preparation should be personalized to the candidate and the job, not based on generic question lists.**
 
-The generated report is stored in MongoDB and displayed through the
-React frontend.
+A candidate provides:
 
-The platform can also generate a tailored, ATS-friendly resume as a PDF
-using Gemini-generated HTML and Puppeteer.
+1. A target **job description**
+2. A **PDF resume** and/or self-description
 
-------------------------------------------------------------------------
+The platform then:
 
-## 🚀 Key Features
+- extracts text from the resume,
+- analyzes the candidate against the target role using Google Gemini,
+- generates a structured interview strategy,
+- calculates a candidate-role match score,
+- identifies skill gaps,
+- creates technical and behavioral interview questions,
+- produces a day-wise preparation roadmap,
+- stores the strategy in MongoDB,
+- provides a live mock-interview experience,
+- evaluates submitted answers in real time,
+- generates a tailored ATS-friendly resume as a PDF,
+- and delivers real-time in-app notifications.
 
-### 🔐 Authentication
+The application uses **React + Vite** on the frontend and **Node.js + Express + MongoDB** on the backend, with **Socket.IO** for real-time communication.
 
--   User registration and login
--   Password hashing with `bcryptjs`
--   JWT-based authentication
--   JWT stored in an HTTP-only cookie
--   Protected API routes
--   Logout with token blacklisting
+---
 
-### 📄 Resume Processing
+## 🎯 Why INTERVIEW-AI?
 
--   Upload PDF resumes
--   Multipart file handling using Multer
--   In-memory file processing
--   PDF text extraction using `pdf-parse`
--   Resume content is passed to the AI analysis pipeline
+Traditional interview preparation often has three problems:
 
-### 🤖 AI-Powered Interview Analysis
+- Generic questions do not reflect the actual job description.
+- Candidates do not know which skills they are missing.
+- Reading model answers does not provide feedback on the candidate's own responses.
 
--   Job-description based personalization
--   Resume/self-description analysis
--   Candidate-job match score
--   Technical interview questions
--   Behavioral interview questions
--   Skill-gap analysis
--   Severity classification: `low`, `medium`, `high`
--   Day-wise preparation roadmap
+INTERVIEW-AI addresses these gaps by connecting the candidate's:
 
-### 🧩 Structured AI Output
+**Resume + Self Description + Job Description**
 
-The Gemini response is constrained using a Zod schema and converted to
-JSON Schema.
+to an AI-driven workflow that produces:
 
-This allows the application to consume predictable structured data
-instead of relying on free-form AI text.
+**Match Analysis → Questions → Skill Gaps → Roadmap → Live Practice → Feedback → Tailored Resume**
 
-### 📊 Interview Reports
+---
 
--   Store generated reports in MongoDB
--   View previous reports
--   View individual reports
--   Reports are associated with the authenticated user
+## ✨ Features
 
-### 📑 AI Resume Generator
+### 🔐 1. Authentication & Account Management
 
--   Generate a job-tailored resume
--   Generate ATS-friendly HTML using Gemini
--   Convert generated HTML to A4 PDF using Puppeteer
--   Supports local Puppeteer execution and serverless Chromium through
-    `@sparticuz/chromium`
+- User registration
+- User login
+- Password hashing using `bcryptjs`
+- JWT-based authentication
+- HTTP-only authentication cookie
+- Protected frontend routes
+- Protected backend APIs
+- Logout support
+- JWT blacklist on logout
+- Current-user endpoint
 
-### 💬 Live AI Mock Interview
+### 📄 2. Resume Upload & Parsing
 
--   Real-time chat interface mimicking a live interview
--   Answer questions via text and receive immediate AI evaluation
--   Powered by Socket.IO for low-latency bidirectional communication
+- PDF resume upload
+- Multipart form-data support with Multer
+- In-memory file processing
+- PDF text extraction using `pdf-parse`
+- Resume text passed directly into the AI analysis pipeline
+- No permanent resume-file storage is required for the interview-generation flow
 
-### 🔔 Real-Time Notifications
+### 🤖 3. AI-Powered Interview Strategy
 
--   In-app notification bell in the global header
--   Real-time alerts when background processes (like AI generation) complete
--   Mark notifications as read, mark all as read, or delete notifications
+Given a resume/self-description and job description, Gemini generates structured data containing:
 
-### 🗑️ Manage Interview Plans
+- Target job title
+- Candidate-job match score
+- Technical questions
+- Behavioral questions
+- Skill gaps
+- Skill-gap severity
+- Day-wise preparation plan
 
--   Users can delete their saved interview plans
--   Permanent deletion from the database
--   Immediate UI updates without refreshing
+### 📊 4. Interview Reports
 
-### 🎨 Frontend
+Each generated interview strategy is stored in MongoDB and associated with the authenticated user.
 
--   React-based UI
--   React Router navigation
--   Context API for application state
--   Axios for API requests
--   Responsive SCSS styling
+Users can:
 
-------------------------------------------------------------------------
+- View all previous interview strategies
+- Open an individual strategy
+- Review match score
+- Review technical questions
+- Review behavioral questions
+- Review skill gaps
+- Follow the preparation roadmap
+- Delete an interview strategy
+
+### 🧪 5. Live Mock Interview
+
+The interview report becomes an interactive practice environment.
+
+Users can:
+
+- Select a technical or behavioral question
+- Type an answer
+- Submit it for AI evaluation
+- Receive live analysis status
+- Receive a score out of 100
+- See strengths
+- See weaknesses
+- See missing concepts
+- Get actionable improvement suggestions
+- See a better/model answer
+- Receive a follow-up interview question
+- Move to the next question
+
+### ⚡ 6. Real-Time Communication with Socket.IO
+
+Socket.IO is used for real-time events such as:
+
+- Interview generation started
+- Interview generation progress
+- Interview generation completed
+- Interview generation errors
+- Answer analysis started
+- Answer feedback received
+- Answer-analysis errors
+- New notifications
+- Reconnection handling
+
+### 🔔 7. Real-Time Notifications
+
+The application provides an in-app notification system.
+
+Users can:
+
+- View notifications
+- See unread notifications
+- Mark one notification as read
+- Mark all notifications as read
+- Delete notifications
+
+Notifications are persisted in MongoDB and emitted through Socket.IO.
+
+### 📑 8. AI Resume Generator
+
+After an interview strategy is generated, the platform can create a job-tailored resume.
+
+Pipeline:
+
+```text
+Interview Report
+      ↓
+Resume + Self Description + Job Description
+      ↓
+Google Gemini
+      ↓
+ATS-friendly HTML
+      ↓
+Puppeteer / Chromium
+      ↓
+A4 PDF
+```
+
+The generated resume is designed to be:
+
+- Job-tailored
+- ATS-friendly
+- Concise
+- Professional
+- Approximately 1–2 pages
+- Downloadable directly from the interview report page
+
+### 🎨 9. Responsive Frontend
+
+The frontend includes:
+
+- React Router navigation
+- Protected routes
+- Context API state management
+- Axios API communication
+- SCSS styling
+- Responsive layouts
+- Dedicated authentication pages
+- Interview dashboard
+- Interview report sections
+- Mock interview interface
+- Notification dropdown
+
+---
+
+## 🔄 End-to-End Workflow
+
+```text
+                    ┌─────────────────────┐
+                    │       Candidate     │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                ┌────────────────────────────┐
+                │ Login / Register           │
+                └──────────────┬─────────────┘
+                               │
+                               ▼
+                ┌────────────────────────────┐
+                │ Job Description             │
+                │ Resume PDF / Self-Desc     │
+                └──────────────┬─────────────┘
+                               │
+                               ▼
+                ┌────────────────────────────┐
+                │ PDF Text Extraction        │
+                │ pdf-parse + Multer         │
+                └──────────────┬─────────────┘
+                               │
+                               ▼
+                ┌────────────────────────────┐
+                │ Google Gemini               │
+                │ Structured AI Analysis      │
+                └──────────────┬─────────────┘
+                               │
+               ┌───────────────┼────────────────┐
+               ▼               ▼                ▼
+        Match Score       Skill Gaps       Questions
+               │               │                │
+               └───────────────┼────────────────┘
+                               ▼
+                ┌────────────────────────────┐
+                │ Preparation Roadmap        │
+                └──────────────┬─────────────┘
+                               │
+                               ▼
+                ┌────────────────────────────┐
+                │ MongoDB Interview Report   │
+                └──────────────┬─────────────┘
+                               │
+               ┌───────────────┼────────────────┐
+               ▼               ▼                ▼
+          Mock Interview   Question Bank   Resume PDF
+               │
+               ▼
+        Socket.IO Answer Submit
+               │
+               ▼
+          Gemini Evaluation
+               │
+               ▼
+        Score + Feedback +
+        Better Answer +
+        Follow-up Question
+```
+
+---
 
 ## 🏗️ System Architecture
 
-``` text
-                         ┌─────────────────────┐
-                         │        User         │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │   React Frontend    │
-                         │ React + Vite + SCSS │
-                         └──────────┬──────────┘
-                                    │
-                              Axios / REST
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │ Express / Node.js   │
-                         │     Backend API     │
-                         └───────┬─────┬───────┘
-                                 │     │
-                  ┌──────────────┘     └──────────────┐
-                  ▼                                   ▼
-        ┌──────────────────┐                ┌──────────────────┐
-        │ Authentication   │                │ Interview Logic  │
-        │ JWT + Cookies    │                │ Resume + AI      │
-        └────────┬─────────┘                └────────┬─────────┘
-                 │                                   │
-                 ▼                                   ▼
-        ┌──────────────────┐                ┌──────────────────┐
-        │    MongoDB       │                │   Google Gemini  │
-        │ Users + Reports  │                │  AI Generation   │
-        └──────────────────┘                └────────┬─────────┘
-                                                     │
-                                                     ▼
-                                           ┌──────────────────┐
-                                           │ Structured JSON  │
-                                           │ Zod / JSON Schema│
-                                           └──────────────────┘
+```mermaid
+flowchart TD
+    U[Candidate] --> FE[React + Vite Frontend]
+
+    FE -->|REST / Axios| API[Node.js + Express API]
+    FE -->|WebSocket| WS[Socket.IO]
+
+    API --> AUTH[JWT + HTTP-only Cookie]
+    API --> PDF[PDF Parser]
+    API --> AI[Google Gemini]
+    API --> DB[(MongoDB)]
+    API --> RESUME[Puppeteer + Chromium]
+
+    WS --> SOCKET_AUTH[Socket Authentication]
+    SOCKET_AUTH --> AI
+    SOCKET_AUTH --> DB
+
+    AI --> REPORT[Interview Strategy]
+    AI --> FEEDBACK[Answer Feedback]
+    AI --> HTML[ATS Resume HTML]
+
+    HTML --> RESUME
+    RESUME --> PDFOUT[Generated Resume PDF]
 ```
 
-------------------------------------------------------------------------
+### Main request flow
 
-## 🔄 Interview Report Flow
+**Frontend → Express → Controller → Service → MongoDB / Gemini → Frontend**
 
-``` text
-Job Description
-       +
-Resume PDF / Self Description
-       │
-       ▼
-React Frontend
-       │
-       │ multipart/form-data
-       ▼
-Express API
-       │
-       ▼
-Authentication Middleware
-       │
-       ▼
-Multer
-       │
-       ▼
-PDF Text Extraction
-       │
-       ▼
-Google Gemini
-       │
-       ▼
-Structured JSON Response
-       │
-       ▼
-MongoDB
-       │
-       ▼
-React Interview Report
-```
+### Real-time flow
 
-------------------------------------------------------------------------
+**Frontend Socket.IO Client → Authenticated Socket.IO Server → Gemini → MongoDB → Socket Event → Frontend**
 
-## 🤖 AI Pipeline
+---
 
-The application sends three major inputs to Gemini:
-
-``` text
-Resume Text
-Self Description
-Job Description
-       │
-       ▼
-   Gemini Model
-       │
-       ▼
-Structured Interview Report
-```
-
-The expected response contains:
-
-``` json
-{
-  "matchScore": 85,
-  "technicalQuestions": [],
-  "behavioralQuestions": [],
-  "skillGaps": [],
-  "preparationPlan": [],
-  "title": "Software Engineer"
-}
-```
-
-### Why structured output?
-
-LLMs can return unpredictable free-form responses.
-
-Interview AI uses:
-
-1.  **Zod** to define the expected response structure
-2.  `zod-to-json-schema` to convert the schema
-3.  Gemini's JSON response mode and response schema
-4.  JSON parsing on the backend
-5.  MongoDB storage of the structured result
-
-This makes the AI response easier for both the backend and frontend to
-consume.
-
-------------------------------------------------------------------------
-
-## 🛠️ Tech Stack
+## 🧰 Tech Stack
 
 ### Frontend
-  Technology         Purpose
-  ------------------ ---------------------------
-  React 19           User interface
-  Vite               Development/build tooling
-  React Router       Client-side routing
-  Context API        Global state management
-  Axios              HTTP/API communication
-  SCSS               Styling
-  Socket.IO Client   Real-time bidirectional communication
 
-## ⚡ Real-Time Architecture with Socket.IO
-
-The application uses **Socket.IO** to provide real-time updates and interactive AI experiences without altering the existing REST flow.
-
-**Event Flow:**
-1. Frontend uses REST for traditional CRUD operations (e.g. `POST /api/interview/`).
-2. Simultaneously, a persistent Socket.IO server emits progress events, notifications, and live AI feedback to an authenticated user-specific room (`user:<userId>`).
-3. React real-time UI components (like the Live Mock Interview and Notification Bell) subscribe to Socket.IO events for instant updates.
-
-**Why Socket.IO?**
-- Decouples long-running AI generation from standard HTTP request/response loops.
-- Provides low-latency feedback for the Live Mock Interview module.
-- Secures real-time data delivery via JWT cookie authentication and dedicated user rooms.
+| Technology | Purpose |
+|---|---|
+| React 19 | UI development |
+| Vite | Development server and production build |
+| React Router | Client-side routing |
+| Axios | REST API communication |
+| Socket.IO Client | Real-time communication |
+| SCSS | Styling |
+| Context API | Authentication/interview state |
 
 ### Backend
 
-  Technology            Purpose
-  --------------------- -------------------------------
-  Node.js               Backend runtime
-  Express 5             REST API
-  Socket.IO             WebSocket / Real-time server
-  MongoDB               Database
-  Mongoose              MongoDB ODM
-  JWT                   Authentication
-  bcryptjs              Password hashing
-  Multer                File uploads
-  pdf-parse             PDF text extraction
-  Google GenAI          LLM integration
-  Zod                   AI response validation/schema
-  zod-to-json-schema    Schema conversion
-  Puppeteer             HTML-to-PDF generation
-  @sparticuz/chromium   Serverless Chromium
+| Technology | Purpose |
+|---|---|
+| Node.js | Runtime |
+| Express 5 | REST API |
+| MongoDB | Persistent storage |
+| Mongoose | MongoDB ODM |
+| JWT | Authentication |
+| bcryptjs | Password hashing |
+| Cookie Parser | Cookie handling |
+| CORS | Cross-origin requests |
+| Multer | Multipart file upload |
+| pdf-parse | Resume PDF text extraction |
+| Socket.IO | Real-time communication |
+| Zod | AI response schema validation |
+| zod-to-json-schema | Gemini structured output schema |
+| dotenv | Environment configuration |
 
-------------------------------------------------------------------------
+### AI & Document Generation
+
+| Technology | Purpose |
+|---|---|
+| Google Gemini | Interview analysis, answer evaluation, resume generation |
+| Puppeteer | HTML → PDF rendering |
+| Chromium | PDF generation runtime |
+| `@sparticuz/chromium` | Serverless Chromium support |
+
+---
 
 ## 📁 Project Structure
 
-``` text
+```text
 INTERVIEW-AI/
 │
 ├── Backend/
@@ -313,573 +399,1258 @@ INTERVIEW-AI/
 │   │   │
 │   │   ├── controllers/
 │   │   │   ├── auth.controller.js
-│   │   │   └── interview.controller.js
+│   │   │   ├── interview.controller.js
+│   │   │   └── notification.controller.js
 │   │   │
 │   │   ├── middlewares/
 │   │   │   ├── auth.middleware.js
 │   │   │   └── file.middleware.js
 │   │   │
 │   │   ├── models/
-│   │   │   ├── user.model.js
+│   │   │   ├── answerFeedback.model.js
+│   │   │   ├── blacklist.model.js
 │   │   │   ├── interviewReport.model.js
-│   │   │   └── blacklist.model.js
+│   │   │   ├── notification.model.js
+│   │   │   └── user.model.js
 │   │   │
 │   │   ├── routes/
 │   │   │   ├── auth.routes.js
-│   │   │   └── interview.routes.js
+│   │   │   ├── interview.routes.js
+│   │   │   └── notification.routes.js
 │   │   │
 │   │   ├── services/
-│   │   │   └── ai.service.js
+│   │   │   ├── ai.service.js
+│   │   │   └── notification.service.js
+│   │   │
+│   │   ├── socket/
+│   │   │   ├── interviewHandler.js
+│   │   │   └── socket.js
 │   │   │
 │   │   └── app.js
 │   │
 │   ├── server.js
 │   ├── Dockerfile
+│   ├── vercel.json
 │   ├── nixpacks.toml
 │   └── package.json
 │
 ├── Frontend/
+│   ├── public/
 │   ├── src/
+│   │   ├── components/
 │   │   ├── features/
 │   │   │   ├── auth/
-│   │   │   │   ├── components/
-│   │   │   │   ├── hooks/
-│   │   │   │   ├── pages/
-│   │   │   │   ├── services/
-│   │   │   │   └── auth.context.jsx
-│   │   │   │
-│   │   │   └── interview/
-│   │   │       ├── hooks/
-│   │   │       ├── pages/
-│   │   │       ├── services/
-│   │   │       └── interview.context.jsx
-│   │   │
-│   │   ├── style/
+│   │   │   ├── interview/
+│   │   │   └── notifications/
+│   │   ├── services/
+│   │   │   └── socket.service.js
 │   │   ├── App.jsx
 │   │   ├── app.routes.jsx
-│   │   └── main.jsx
+│   │   ├── main.jsx
+│   │   └── style.scss
 │   │
+│   ├── index.html
 │   ├── vite.config.js
+│   ├── vercel.json
 │   └── package.json
 │
 ├── Dockerfile
 ├── vercel.json
+├── nixpacks.toml
+├── package.json
 └── README.md
 ```
 
-------------------------------------------------------------------------
+---
 
-## 🔑 Authentication Flow
-
-Interview AI uses JWT authentication with HTTP-only cookies.
-
-``` text
-Register / Login
-       │
-       ▼
-Validate credentials
-       │
-       ▼
-bcrypt password verification
-       │
-       ▼
-Create JWT
-       │
-       ▼
-HTTP-only Cookie
-       │
-       ▼
-Protected API Request
-       │
-       ▼
-JWT Middleware
-       │
-       ▼
-Authenticated User
-```
-
-### Password security
-
-Passwords are never stored as plaintext.
-
-During registration:
-
-``` text
-Plain Password
-      │
-      ▼
-bcrypt.hash()
-      │
-      ▼
-Password Hash
-      │
-      ▼
-MongoDB
-```
-
-During login, `bcrypt.compare()` verifies the supplied password against
-the stored hash.
-
-### Token invalidation
-
-On logout:
-
-1.  The current JWT is stored in the blacklist collection.
-2.  The authentication cookie is cleared.
-3.  The authentication middleware can reject blacklisted tokens.
-
-------------------------------------------------------------------------
-
-## 🗃️ Database Models
+## 🗄️ Data Model
 
 ### User
 
-``` text
+```text
 User
 ├── username
 ├── email
-└── password
+└── password (hashed)
 ```
 
 ### InterviewReport
 
-``` text
+```text
 InterviewReport
 ├── user
+├── title
 ├── jobDescription
 ├── resume
 ├── selfDescription
 ├── matchScore
 ├── technicalQuestions[]
+│   ├── question
+│   ├── intention
+│   └── answer
 ├── behavioralQuestions[]
+│   ├── question
+│   ├── intention
+│   └── answer
 ├── skillGaps[]
-├── preparationPlan[]
+│   ├── skill
+│   └── severity
+└── preparationPlan[]
+    ├── day
+    ├── focus
+    └── tasks[]
+```
+
+### AnswerFeedback
+
+```text
+AnswerFeedback
+├── interviewId
+├── userId
+├── question
+├── userAnswer
+├── score
+├── strengths[]
+├── weaknesses[]
+├── missingPoints[]
+├── suggestions[]
+├── betterAnswer
+└── followUpQuestion
+```
+
+### Notification
+
+```text
+Notification
+├── userId
+├── type
 ├── title
-├── createdAt
-└── updatedAt
+├── message
+└── read
 ```
 
-### BlacklistToken
+### Blacklisted Token
 
-``` text
+```text
 BlacklistToken
-├── token
-├── createdAt
-└── updatedAt
+└── token
 ```
 
-------------------------------------------------------------------------
+---
 
-## 🔌 API Endpoints
+# 🔌 REST API
 
-### Authentication
+All API routes are prefixed with `/api`.
 
-  Method   Endpoint               Description
-  -------- ---------------------- --------------------------------
-  `POST`   `/api/auth/register`   Register a new user
-  `POST`   `/api/auth/login`      Login
-  `GET`    `/api/auth/logout`     Logout and invalidate token
-  `GET`    `/api/auth/get-me`     Get current authenticated user
+Authentication uses the `token` HTTP-only cookie.
 
-### Interview
+## Authentication
 
-  ------------------------------------------------------------------------------------------------
-  Method                  Endpoint                                         Description
-  ----------------------- ------------------------------------------------ -----------------------
-  `POST`                  `/api/interview/`                                Generate an AI
-                                                                           interview report
+### Register
 
-  `GET`                   `/api/interview/`                                Get the user's previous
-                                                                           reports
+```http
+POST /api/auth/register
+```
 
-  `GET`                   `/api/interview/report/:interviewId`             Get one interview
-                                                                           report
+Request:
 
-  `POST`                  `/api/interview/resume/pdf/:interviewReportId`   Generate a tailored
-                                                                           resume PDF
-  ------------------------------------------------------------------------------------------------
+```json
+{
+  "username": "candidate",
+  "email": "candidate@example.com",
+  "password": "your-password"
+}
+```
 
-Protected endpoints require authentication.
+### Login
 
-------------------------------------------------------------------------
+```http
+POST /api/auth/login
+```
 
-## ⚙️ Installation
+Request:
 
-### Prerequisites
+```json
+{
+  "email": "candidate@example.com",
+  "password": "your-password"
+}
+```
 
-Make sure you have:
+### Get Current User
 
--   Node.js 18+
--   npm
--   MongoDB Atlas or a local MongoDB instance
--   Google Gemini API key
--   Git
+```http
+GET /api/auth/get-me
+```
 
-### 1. Clone the repository
+**Authentication:** Required
 
-``` bash
-git clone https://github.com/astha-2004-code/INTERVIEW-AI.git
+### Logout
+
+```http
+GET /api/auth/logout
+```
+
+---
+
+## Interview APIs
+
+### Generate Interview Strategy
+
+```http
+POST /api/interview/
+```
+
+**Authentication:** Required
+
+Content type:
+
+```text
+multipart/form-data
+```
+
+Fields:
+
+| Field | Type | Required |
+|---|---|---|
+| `jobDescription` | string | Yes |
+| `selfDescription` | string | Either this or resume |
+| `resume` | PDF file | Either this or selfDescription |
+| `generationId` | string | Optional |
+
+The backend:
+
+1. Validates authentication.
+2. Extracts PDF text if a resume is uploaded.
+3. Sends candidate data and job description to Gemini.
+4. Receives structured JSON.
+5. Stores the interview report.
+6. Emits progress/completion events when `generationId` is provided.
+7. Creates a completion notification.
+
+### Get All Interview Reports
+
+```http
+GET /api/interview/
+```
+
+**Authentication:** Required
+
+### Get One Interview Report
+
+```http
+GET /api/interview/report/:interviewId
+```
+
+**Authentication:** Required
+
+### Delete Interview Report
+
+```http
+DELETE /api/interview/:interviewId
+```
+
+**Authentication:** Required
+
+### Generate Tailored Resume PDF
+
+```http
+POST /api/interview/resume/pdf/:interviewReportId
+```
+
+**Authentication:** Required
+
+Returns:
+
+```text
+application/pdf
+```
+
+---
+
+## Notification APIs
+
+### Get Notifications
+
+```http
+GET /api/notifications
+```
+
+### Mark Notification as Read
+
+```http
+PATCH /api/notifications/:id/read
+```
+
+### Mark All Notifications as Read
+
+```http
+PATCH /api/notifications/read-all
+```
+
+### Delete Notification
+
+```http
+DELETE /api/notifications/:id
+```
+
+All notification endpoints require authentication.
+
+---
+
+## Health Check
+
+```http
+GET /api/health
+```
+
+Example response:
+
+```json
+{
+  "status": "OK",
+  "message": "Server is healthy",
+  "timestamp": "2026-08-25T00:00:00.000Z"
+}
+```
+
+---
+
+# ⚡ Socket.IO Events
+
+The application uses authenticated Socket.IO connections for real-time interview processing.
+
+## Connection
+
+The frontend connects using:
+
+```text
+VITE_SOCKET_URL
+```
+
+or falls back to:
+
+```text
+VITE_API_BASE_URL
+```
+
+If the URL ends with `/api`, the client removes `/api` before establishing the Socket.IO connection.
+
+---
+
+## Interview Generation Events
+
+### `interview:started`
+
+Emitted when interview generation begins.
+
+```json
+{
+  "generationId": "generation-id",
+  "message": "Starting interview analysis..."
+}
+```
+
+### `interview:progress`
+
+Used to display generation progress.
+
+Example stages:
+
+```text
+resume_parsing
+ai_processing
+saving_strategy
+completed
+```
+
+Example:
+
+```json
+{
+  "generationId": "generation-id",
+  "stage": "ai_processing",
+  "progress": 50,
+  "message": "AI is processing your interview strategy..."
+}
+```
+
+### `interview:completed`
+
+Contains the generated interview report.
+
+### `interview:error`
+
+Contains an error message associated with the generation ID.
+
+---
+
+## Mock Interview Events
+
+### Client → Server
+
+```text
+answer:submit
+```
+
+Payload:
+
+```json
+{
+  "interviewId": "report-id",
+  "question": "Explain REST APIs.",
+  "answer": "My answer...",
+  "resume": "Resume text...",
+  "jobDescription": "Job description..."
+}
+```
+
+### Server → Client
+
+```text
+answer:analyzing
+answer:feedback
+answer:error
+```
+
+The feedback contains:
+
+- Score
+- Strengths
+- Weaknesses
+- Missing concepts
+- Suggestions
+- Better answer
+- Follow-up question
+
+---
+
+## Notification Event
+
+### `notification:new`
+
+Sent to the authenticated user's Socket.IO room whenever a new notification is created.
+
+User-specific rooms follow:
+
+```text
+user:<userId>
+```
+
+---
+
+# 🧩 AI Architecture
+
+The AI service is intentionally separated from controllers.
+
+```text
+Controller
+   ↓
+AI Service
+   ↓
+Gemini
+   ↓
+Structured JSON
+   ↓
+Controller
+   ↓
+MongoDB
+```
+
+## Interview Report Generation
+
+The interview-generation schema is defined using Zod and converted to JSON Schema using `zod-to-json-schema`.
+
+This reduces the risk of receiving unpredictable free-form AI output.
+
+Conceptually:
+
+```text
+Zod Schema
+    ↓
+JSON Schema
+    ↓
+Gemini structured response
+    ↓
+JSON.parse()
+    ↓
+MongoDB
+```
+
+The generated strategy contains:
+
+```text
+title
+matchScore
+technicalQuestions
+behavioralQuestions
+skillGaps
+preparationPlan
+```
+
+## Answer Evaluation
+
+Each mock-interview answer is evaluated against:
+
+1. Relevance
+2. Technical correctness
+3. Clarity and communication
+4. Completeness
+5. Edge cases / trade-offs where applicable
+
+The AI returns structured feedback instead of a single paragraph.
+
+---
+
+# 🛠️ Getting Started
+
+## Prerequisites
+
+Install:
+
+- Node.js 18+
+- npm
+- MongoDB
+- Google Gemini API key
+- Chromium/Chrome for local PDF generation, if Puppeteer cannot locate one automatically
+
+Recommended Node.js version:
+
+```text
+Node.js 20+
+```
+
+---
+
+## 1. Clone the Repository
+
+```bash
+git clone <your-repository-url>
 cd INTERVIEW-AI
 ```
 
-### 2. Install backend dependencies
+---
 
-``` bash
+## 2. Install Backend Dependencies
+
+```bash
 cd Backend
 npm install
 ```
 
-### 3. Configure backend environment variables
+---
 
-Create:
-
-``` text
-Backend/.env
-```
-
-Add:
-
-``` env
-PORT=3000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-GOOGLE_GENAI_API_KEY=your_gemini_api_key
-FRONTEND_URL=http://localhost:5173
-CORS_ORIGIN=http://localhost:5173
-```
-
-### 4. Start backend
-
-Development:
-
-``` bash
-npm run dev
-```
-
-Production / Docker:
-
-``` bash
-npm start
-```
-
-### 5. Install frontend dependencies
+## 3. Install Frontend Dependencies
 
 Open another terminal:
 
-``` bash
+```bash
 cd Frontend
 npm install
 ```
 
-### 6. Configure frontend
+---
+
+# 🔑 Environment Variables
+
+## Backend
 
 Create:
 
-``` text
+```text
+Backend/.env
+```
+
+Recommended configuration:
+
+```env
+PORT=5000
+
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
+
+JWT_SECRET=replace-with-a-long-random-secret
+
+GEMINI_API_KEY=your-gemini-api-key
+
+CORS_ORIGIN=http://localhost:5173
+
+FRONTEND_URL=http://localhost:5173
+
+NODE_ENV=development
+```
+
+### Variable reference
+
+| Variable | Purpose |
+|---|---|
+| `PORT` | Backend HTTP port |
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret used to sign/verify JWTs |
+| `GEMINI_API_KEY` | Google Gemini API credential |
+| `CORS_ORIGIN` | Allowed frontend origin |
+| `FRONTEND_URL` | Frontend URL used by deployment configuration |
+| `NODE_ENV` | Runtime environment |
+
+> Never commit `.env` files or API keys to Git.
+
+---
+
+## Frontend
+
+Create:
+
+```text
 Frontend/.env
 ```
 
-Add:
+Example:
 
-``` env
-VITE_API_BASE_URL=http://localhost:3000
+```env
+VITE_API_BASE_URL=http://localhost:5000
+VITE_SOCKET_URL=http://localhost:5000
 ```
 
-### 7. Start frontend
+For production, replace these with the deployed backend URL.
 
-``` bash
+Example:
+
+```env
+VITE_API_BASE_URL=https://your-backend.example.com
+VITE_SOCKET_URL=https://your-backend.example.com
+```
+
+> Vite exposes variables beginning with `VITE_` to the browser. Do not put secrets in frontend environment variables.
+
+---
+
+# ▶️ Running Locally
+
+## Start Backend
+
+```bash
+cd Backend
 npm run dev
 ```
 
-The frontend will normally be available at:
+Backend:
 
-``` text
+```text
+http://localhost:5000
+```
+
+Health check:
+
+```text
+http://localhost:5000/api/health
+```
+
+## Start Frontend
+
+In another terminal:
+
+```bash
+cd Frontend
+npm run dev
+```
+
+Frontend:
+
+```text
 http://localhost:5173
 ```
 
-------------------------------------------------------------------------
+---
 
-## 🔐 Environment Variables
+# 🏭 Production Build
 
-### Backend
+## Frontend
 
-``` env
-PORT=3000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-GOOGLE_GENAI_API_KEY=your_gemini_api_key
-FRONTEND_URL=http://localhost:5173
-CORS_ORIGIN=http://localhost:5173
+```bash
+cd Frontend
+npm run build
 ```
 
-### Frontend
+Preview:
 
-``` env
-VITE_API_BASE_URL=http://localhost:3000
+```bash
+npm run preview
 ```
 
-> Never commit real API keys, JWT secrets, database credentials, or
-> production environment variables to Git.
+## Backend
 
-------------------------------------------------------------------------
-
-## 📑 Resume PDF Generation
-
-The resume-generation pipeline is:
-
-``` text
-Candidate Information
-        +
-Job Description
-        │
-        ▼
-     Gemini
-        │
-        ▼
-ATS-friendly HTML
-        │
-        ▼
-Puppeteer
-        │
-        ▼
-A4 PDF
+```bash
+cd Backend
+npm start
 ```
 
-### Serverless support
+---
 
-For serverless environments such as Vercel, the project uses:
+# 🐳 Docker
 
--   `puppeteer-core`
--   `@sparticuz/chromium`
+The repository includes Docker configuration for the backend.
 
-For local development, it can use regular `puppeteer`.
+The Docker image installs Chromium because the application uses Puppeteer to generate PDF resumes.
 
-------------------------------------------------------------------------
+Build:
 
-## 🧠 Design Decisions
-
-### Why MongoDB?
-
-Interview reports contain nested arrays and AI-generated structures.
-MongoDB's document model maps naturally to this data.
-
-### Why JWT?
-
-JWT provides a lightweight authentication mechanism suitable for a REST
-API.
-
-### Why HTTP-only cookies?
-
-HTTP-only cookies prevent client-side JavaScript from directly reading
-the authentication token, reducing exposure in case of certain XSS
-attacks.
-
-### Why Multer?
-
-The application receives PDF resumes using `multipart/form-data`, and
-Multer provides straightforward Express middleware for handling uploaded
-files.
-
-### Why Zod + JSON Schema?
-
-LLM output can be inconsistent. A schema provides a predictable contract
-between the AI service and the rest of the application.
-
-### Why Puppeteer?
-
-The AI generates HTML for the resume, and Puppeteer provides
-browser-quality rendering to convert that HTML into a PDF.
-
-------------------------------------------------------------------------
-
-## 🛡️ Security Considerations
-
-The application includes:
-
--   bcrypt password hashing
--   JWT authentication
--   HTTP-only cookies
--   Protected routes
--   User ownership checks for interview reports
--   File-size limits
--   CORS configuration
--   Token blacklisting on logout
-
-### Production improvements
-
-For a larger production deployment, the following could be added:
-
--   Rate limiting
--   Helmet/security headers
--   Stronger request validation
--   File signature/MIME validation
--   Object storage such as S3 for uploaded files
--   Automatic cleanup of expired blacklisted tokens
--   Background queues for AI/PDF jobs
--   Centralized logging and monitoring
--   Automated unit/integration tests
-
-------------------------------------------------------------------------
-
-## 📈 Scalability Improvements
-
-The current application performs AI generation and PDF generation
-synchronously.
-
-For higher traffic, the architecture could be changed to:
-
-``` text
-Client
-  │
-  ▼
-API Server
-  │
-  ▼
-Job Queue
-  │
-  ├──────────────► AI Worker
-  │
-  └──────────────► PDF Worker
-                         │
-                         ▼
-                    Object Storage
+```bash
+docker build -t interview-ai .
 ```
 
-Potential technologies:
+Run:
 
--   Redis
--   BullMQ
--   RabbitMQ
--   AWS S3
--   Docker
--   Load balancer
--   Multiple Node.js instances
+```bash
+docker run -p 5000:5000 --env-file Backend/.env interview-ai
+```
 
-This would prevent long-running AI/PDF tasks from blocking normal API
-requests.
+The container configures:
 
-------------------------------------------------------------------------
+```text
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+```
 
-## 🧪 Testing
+This avoids downloading another Chromium copy during npm installation.
 
-The project currently does not include a complete automated test suite.
+---
 
-Recommended future tests:
+# ☁️ Deployment
 
-### Backend
+A practical production architecture is:
 
--   Registration validation
--   Login validation
--   JWT middleware
--   Logout/token blacklist
--   Interview report authorization
--   Resume upload validation
--   AI service error handling
+```text
+                         ┌──────────────────┐
+                         │   Vercel         │
+                         │   React Frontend │
+                         └────────┬─────────┘
+                                  │
+                           HTTPS / REST
+                                  │
+                                  ▼
+                         ┌──────────────────┐
+                         │ Long-running     │
+                         │ Node Backend     │
+                         │ Railway/Render   │
+                         └───────┬──────────┘
+                                 │
+                   ┌─────────────┼──────────────┐
+                   ▼             ▼              ▼
+              MongoDB       Gemini API      Socket.IO
+```
 
-### Frontend
+## Frontend deployment
 
--   Login form
--   Registration form
--   Protected routes
--   Interview form
--   Loading/error states
--   Report rendering
+The `Frontend/vercel.json` file contains the SPA rewrite needed for client-side routing.
 
-Suggested tools:
+Configure:
 
--   Jest
--   Supertest
--   React Testing Library
+```env
+VITE_API_BASE_URL=https://your-backend-domain
+VITE_SOCKET_URL=https://your-backend-domain
+```
 
-------------------------------------------------------------------------
+## Backend deployment
 
-## 🚧 Known Limitations
+The backend can be deployed as a Node.js service or Docker container.
 
--   AI-generated match scores are model-based and are not a
-    deterministic ATS score.
--   AI responses depend on model availability and API quotas.
--   PDF processing currently focuses on PDF resume input.
--   AI generation and PDF generation are synchronous.
--   Uploaded resume content is processed in memory.
--   The application would benefit from stronger production-level rate
-    limiting and monitoring.
+Required production environment variables include:
 
-------------------------------------------------------------------------
+```env
+MONGO_URI=...
+JWT_SECRET=...
+GEMINI_API_KEY=...
+CORS_ORIGIN=https://your-frontend-domain
+FRONTEND_URL=https://your-frontend-domain
+NODE_ENV=production
+```
 
-## 🔮 Future Enhancements
--   Speech-to-text interview answers
--   AI evaluation of spoken answers
--   Coding interview mode
--   DSA question generation
--   System-design interview mode
--   Interview difficulty selection
--   Company-specific interview preparation
--   Job-board integration
--   Resume ATS scoring
--   Skill recommendation engine
--   Progress tracking across interviews
--   Redis caching
--   Background AI processing
--   Email interview reminders
--   Admin analytics dashboard
+For Docker deployments, Chromium is installed by the included Dockerfile.
 
-------------------------------------------------------------------------
+---
 
-## 💡 Example Use Case
+# 🔒 Security
 
-A candidate applying for a Software Engineer position can:
+The project includes several security mechanisms:
 
-1.  Log in.
-2.  Paste the job description.
-3.  Upload their resume.
-4.  Generate an AI interview report.
-5.  Review their match score.
-6.  Identify missing skills.
-7.  Practice technical and behavioral questions.
-8.  Follow the personalized preparation plan.
-9.  Generate a job-tailored ATS-friendly resume.
+### Password Security
 
-------------------------------------------------------------------------
+Passwords are hashed using:
 
-## 🎯 Interview Talking Points
+```text
+bcryptjs
+```
 
-If this project is discussed in a technical interview, the main
-engineering topics include:
+Passwords are never intentionally returned in authentication responses.
 
--   React component architecture
--   Context API and custom hooks
--   REST API design
--   Express middleware
--   JWT authentication
--   HTTP-only cookies
--   Password hashing
--   MongoDB/Mongoose schema design
--   File uploads with Multer
--   PDF text extraction
--   LLM integration
--   Structured AI output
--   Zod validation
--   Prompt design
--   Error handling
--   PDF generation with Puppeteer
--   Serverless deployment
--   Scalability and production architecture
+### JWT Authentication
 
-------------------------------------------------------------------------
+JWTs contain authenticated user information and expire after one day.
 
-## 👩‍💻 Author
+### HTTP-only Cookie
 
-**Astha Jha**
+The authentication token is stored in an HTTP-only cookie rather than browser local storage.
 
-B.Tech --- Electronics and Communication Engineering\
-NIT Delhi
+### Production Cookie Settings
 
-GitHub: https://github.com/astha-2004-code
+Production authentication cookies use:
 
-------------------------------------------------------------------------
+```text
+secure: true
+sameSite: none
+```
 
-## 📄 License
+### Token Blacklisting
 
-This project is intended for educational, portfolio, and
-interview-preparation purposes.
+On logout:
 
+```text
+JWT
+ ↓
+Blacklist collection
+ ↓
+Cookie cleared
+```
+
+Future requests using the blacklisted token are rejected.
+
+### Protected Resources
+
+Interview reports are queried using both:
+
+```text
+interviewId
++
+authenticated user ID
+```
+
+This prevents a user from retrieving another user's interview report through the normal report endpoint.
+
+---
+
+# ⚠️ Security Recommendations Before Public Production Use
+
+For a production-grade release, consider adding:
+
+- Rate limiting for authentication and AI endpoints
+- Stronger password policy
+- Request body size limits
+- File size/type validation with stricter limits
+- PDF malware/content scanning
+- Input sanitization
+- CSRF protection strategy for cookie-based authentication
+- Token blacklist expiration/cleanup
+- Database indexes for frequent queries
+- API request logging and audit logging
+- Centralized error handling
+- Secrets management through the deployment platform
+- AI request quotas and abuse prevention
+- Content moderation / prompt-injection defenses for uploaded resumes and job descriptions
+
+---
+
+# 🚨 Error Handling
+
+The backend returns structured HTTP responses for common failure cases.
+
+Examples:
+
+### Missing authentication
+
+```http
+401 Unauthorized
+```
+
+### Missing job description
+
+```http
+400 Bad Request
+```
+
+### Missing resume and self-description
+
+```http
+400 Bad Request
+```
+
+### Missing interview report
+
+```http
+404 Not Found
+```
+
+### Server/AI/database failure
+
+```http
+500 Internal Server Error
+```
+
+The Socket.IO layer also emits dedicated error events so the frontend can display real-time failures without requiring a page refresh.
+
+---
+
+# ⚙️ Performance & Engineering Decisions
+
+## 1. Structured AI Output
+
+Instead of relying on free-form AI text, the application uses:
+
+```text
+Zod → JSON Schema → Gemini structured response
+```
+
+This makes downstream processing more predictable.
+
+## 2. In-Memory Resume Processing
+
+Uploaded resumes are processed directly from memory.
+
+Benefits:
+
+- No unnecessary temporary file storage
+- Simpler request lifecycle
+- Lower storage overhead
+
+Trade-off:
+
+- Large uploads can increase memory usage, so production deployments should enforce strict file-size limits.
+
+## 3. Real-Time Progress
+
+Interview generation can involve several stages:
+
+```text
+Resume Parsing
+      ↓
+AI Processing
+      ↓
+Saving Strategy
+      ↓
+Completed
+```
+
+Socket.IO lets the UI display progress instead of making the user wait on a static loading screen.
+
+## 4. Separation of Concerns
+
+The backend separates:
+
+```text
+Routes
+Controllers
+Services
+Models
+Middleware
+Socket Handlers
+```
+
+For example:
+
+- Routes define endpoints.
+- Controllers handle HTTP request/response logic.
+- AI service owns Gemini interaction.
+- Models own MongoDB schemas.
+- Socket layer owns real-time communication.
+- Middleware owns authentication and file processing.
+
+## 5. Serverless-Aware PDF Generation
+
+The resume generator detects serverless environments and can use:
+
+```text
+puppeteer-core
++
+@sparticuz/chromium
+```
+
+while local/Docker environments can use:
+
+```text
+puppeteer
++
+system Chromium
+```
+
+---
+
+# 🧪 Testing
+
+The backend currently does not include a configured automated test suite.
+
+The package currently contains a placeholder test command.
+
+A production-ready testing strategy should include:
+
+### Unit Tests
+
+- Authentication controller
+- AI service validation
+- Notification service
+- Interview report creation
+- Socket handlers
+
+### Integration Tests
+
+- Register/login/logout flow
+- Protected endpoints
+- Interview generation API
+- Report retrieval
+- Report deletion
+- Notification endpoints
+
+### Frontend Tests
+
+- Login/register forms
+- Protected routes
+- Interview report rendering
+- Mock interview submission
+- Feedback rendering
+- Notification interactions
+
+### End-to-End Tests
+
+Recommended flow:
+
+```text
+Register
+  ↓
+Login
+  ↓
+Create Interview Strategy
+  ↓
+View Report
+  ↓
+Start Mock Interview
+  ↓
+Submit Answer
+  ↓
+Receive AI Feedback
+  ↓
+Generate Resume PDF
+  ↓
+Logout
+```
+
+---
+
+# 🧭 Known Considerations
+
+### 1. Gemini Model Availability
+
+The project currently references:
+
+```text
+gemini-3-flash-preview
+```
+
+Because preview models can change availability, limits, or behavior, production deployments should verify model availability and quotas.
+
+### 2. Socket.IO Hosting
+
+The backend uses a long-lived HTTP server for Socket.IO.
+
+If deploying the backend to a serverless platform, verify that persistent WebSocket/Socket.IO behavior is supported by the chosen deployment architecture. For reliable real-time functionality, a long-running Node.js service is generally the safer architecture.
+
+### 3. PDF Generation
+
+Chromium is required for the resume generator.
+
+Docker/Nixpacks configuration is included to support Chromium-based PDF generation.
+
+### 4. AI Cost and Rate Limits
+
+Interview reports, answer evaluations, and resume generation all invoke the AI service.
+
+Production deployments should consider:
+
+- request limits,
+- user quotas,
+- caching,
+- retry policies,
+- usage monitoring,
+- and cost controls.
+
+### 5. Uploaded Content Is Untrusted Input
+
+Resume and job-description text is user-controlled input. A production version should explicitly defend against prompt injection and excessively large/malicious content.
+
+---
+
+# 🗺️ Future Improvements
+
+Potential next versions could include:
+
+- [ ] Voice-based mock interviews
+- [ ] Speech-to-text answer input
+- [ ] AI evaluation of communication style
+- [ ] Filler-word detection
+- [ ] Confidence and speaking-speed analysis
+- [ ] Interview session history
+- [ ] Overall interview score
+- [ ] Progress analytics over time
+- [ ] Company-specific interview modes
+- [ ] Coding interview mode
+- [ ] System-design interview mode
+- [ ] Role-specific question banks
+- [ ] Difficulty selection
+- [ ] Follow-up question chains
+- [ ] Interview timer
+- [ ] AI interviewer personas
+- [ ] Resume version history
+- [ ] ATS keyword analysis
+- [ ] Job-description keyword extraction
+- [ ] Job application tracker
+- [ ] Email/job-alert integration
+- [ ] Redis-based caching and rate limiting
+- [ ] Background job queue for long-running AI tasks
+- [ ] Automated test coverage
+- [ ] CI/CD pipeline
+- [ ] Observability and structured logging
+
+---
+
+# 💡 Example Use Case
+
+Suppose a candidate applies for:
+
+```text
+Software Development Engineer Intern
+```
+
+They upload their resume and paste the job description.
+
+INTERVIEW-AI can transform that input into:
+
+```text
+Target Role
+    ↓
+SDE Intern
+
+Match Score
+    ↓
+87%
+
+Technical Questions
+    ↓
+React, APIs, Node.js, SQL, DSA...
+
+Behavioral Questions
+    ↓
+Teamwork, conflict, ownership...
+
+Skill Gaps
+    ↓
+System Design → Medium
+Advanced DSA → High
+Testing → Low
+
+Preparation Plan
+    ↓
+Day 1 → DSA
+Day 2 → Backend
+Day 3 → SQL
+Day 4 → React
+...
+
+Live Mock Interview
+    ↓
+Candidate Answer
+    ↓
+AI Score: 78/100
+    ↓
+Strengths
+Weaknesses
+Missing Concepts
+Better Answer
+Follow-up Question
+
+Tailored Resume
+    ↓
+ATS-friendly PDF
+```
+
+This makes the application useful as an end-to-end interview preparation workflow rather than just an AI question generator.
+
+---
+
+# 🏆 What This Project Demonstrates
+
+INTERVIEW-AI demonstrates practical full-stack engineering across several areas:
+
+- Full-stack application architecture
+- REST API design
+- Authentication and authorization
+- JWT and HTTP-only cookies
+- MongoDB data modeling
+- File upload and PDF parsing
+- Generative AI integration
+- Structured AI responses
+- Prompt engineering
+- Real-time communication with Socket.IO
+- Event-driven UI updates
+- AI answer evaluation
+- Dynamic PDF generation
+- Chromium/Puppeteer deployment
+- Docker-based backend deployment
+- CORS and cross-origin authentication
+- React state management
+- Responsive UI development
+- Serverless-aware engineering
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+### 1. Fork the repository
+
+```bash
+git fork <repository-url>
+```
+
+### 2. Create a feature branch
+
+```bash
+git checkout -b feature/your-feature
+```
+
+### 3. Make your changes
+
+Follow the existing project structure and naming conventions.
+
+### 4. Commit
+
+```bash
+git commit -m "feat: add your feature"
+```
+
+### 5. Push
+
+```bash
+git push origin feature/your-feature
+```
+
+### 6. Open a Pull Request
+
+Please describe:
+
+- What changed
+- Why it was needed
+- How it was tested
+- Any deployment/environment changes
+
+---
+
+# 📄 License
+
+No explicit open-source license is currently included in the repository.
+
+If you plan to make the project publicly reusable, add an appropriate license file such as MIT before presenting the repository as an open-source project.
+
+---
+
+## ⭐ If You Find This Project Useful
+
+Consider starring the repository and sharing feedback.
+
+Built with ❤️ using React, Node.js, MongoDB, Socket.IO, and Google Gemini.
