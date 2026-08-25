@@ -1,4 +1,4 @@
-# Interview AI 🎤
+# INTERVIEW-AI 🎤
 
 An AI-powered interview preparation platform that analyzes a candidate's
 resume or self-description against a target job description and
@@ -14,7 +14,7 @@ generates a personalized interview strategy.
 
 ## ✨ Overview
 
-Interview AI is a full-stack web application built to make interview
+INTERVIEW-AI is a full-stack web application built to make interview
 preparation more personalized.
 
 Instead of preparing from generic interview questions, a candidate
@@ -94,6 +94,24 @@ instead of relying on free-form AI text.
 -   Convert generated HTML to A4 PDF using Puppeteer
 -   Supports local Puppeteer execution and serverless Chromium through
     `@sparticuz/chromium`
+
+### 💬 Live AI Mock Interview
+
+-   Real-time chat interface mimicking a live interview
+-   Answer questions via text and receive immediate AI evaluation
+-   Powered by Socket.IO for low-latency bidirectional communication
+
+### 🔔 Real-Time Notifications
+
+-   In-app notification bell in the global header
+-   Real-time alerts when background processes (like AI generation) complete
+-   Mark notifications as read, mark all as read, or delete notifications
+
+### 🗑️ Manage Interview Plans
+
+-   Users can delete their saved interview plans
+-   Permanent deletion from the database
+-   Immediate UI updates without refreshing
 
 ### 🎨 Frontend
 
@@ -235,41 +253,29 @@ consume.
 ## 🛠️ Tech Stack
 
 ### Frontend
-<<<<<<< HEAD
-- **React 18** - UI library
-- **Vite** - Lightning-fast build tool
-- **React Router** - Client-side routing
-- **Context API** - State management
-- **SCSS** - Styling
-- **Axios** - HTTP client
-- **Socket.IO Client** - Real-time progress updates
+  Technology         Purpose
+  ------------------ ---------------------------
+  React 19           User interface
+  Vite               Development/build tooling
+  React Router       Client-side routing
+  Context API        Global state management
+  Axios              HTTP/API communication
+  SCSS               Styling
+  Socket.IO Client   Real-time bidirectional communication
 
 ## ⚡ Real-Time Architecture with Socket.IO
 
-The application uses **Socket.IO** to provide real-time updates while the AI interview report is being generated, without altering the existing REST flow.
+The application uses **Socket.IO** to provide real-time updates and interactive AI experiences without altering the existing REST flow.
 
 **Event Flow:**
-1. Frontend calls REST API `POST /api/interview/` with a unique `generationId`.
-2. REST API → Express Controller → Gemini API → MongoDB.
-3. Simultaneously, the persistent Backend Socket.IO server emits progress events to an authenticated user-specific room (`user:<userId>`).
-4. React real-time progress UI subscribes to the Socket.IO events and updates visual progress.
+1. Frontend uses REST for traditional CRUD operations (e.g. `POST /api/interview/`).
+2. Simultaneously, a persistent Socket.IO server emits progress events, notifications, and live AI feedback to an authenticated user-specific room (`user:<userId>`).
+3. React real-time UI components (like the Live Mock Interview and Notification Bell) subscribe to Socket.IO events for instant updates.
 
 **Why Socket.IO?**
-- Provides persistent bidirectional communication.
-- Greatly improves user experience during long-running AI generation (up to 30s).
-- Decouples progress notifications from the HTTP response.
-- Ensures events are strictly broadcasted to authenticated user-specific rooms.
-=======
->>>>>>> 3382f87bc72707fc274aca3df41fb0ff7cf5a19d
-
-  Technology     Purpose
-  -------------- ---------------------------
-  React 19       User interface
-  Vite           Development/build tooling
-  React Router   Client-side routing
-  Context API    Global state management
-  Axios          HTTP/API communication
-  SCSS           Styling
+- Decouples long-running AI generation from standard HTTP request/response loops.
+- Provides low-latency feedback for the Live Mock Interview module.
+- Secures real-time data delivery via JWT cookie authentication and dedicated user rooms.
 
 ### Backend
 
@@ -277,6 +283,7 @@ The application uses **Socket.IO** to provide real-time updates while the AI int
   --------------------- -------------------------------
   Node.js               Backend runtime
   Express 5             REST API
+  Socket.IO             WebSocket / Real-time server
   MongoDB               Database
   Mongoose              MongoDB ODM
   JWT                   Authentication
@@ -542,22 +549,15 @@ FRONTEND_URL=http://localhost:5173
 CORS_ORIGIN=http://localhost:5173
 ```
 
-<<<<<<< HEAD
-### Frontend (.env)
-```env
-VITE_API_BASE_URL=http://localhost:3000
-VITE_SOCKET_URL=http://localhost:3000
-=======
 ### 4. Start backend
 
 Development:
 
 ``` bash
 npm run dev
->>>>>>> 3382f87bc72707fc274aca3df41fb0ff7cf5a19d
 ```
 
-Production:
+Production / Docker:
 
 ``` bash
 npm start
@@ -808,8 +808,6 @@ Suggested tools:
 ------------------------------------------------------------------------
 
 ## 🔮 Future Enhancements
-
--   Real-time AI mock interview with voice input
 -   Speech-to-text interview answers
 -   AI evaluation of spoken answers
 -   Coding interview mode
