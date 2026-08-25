@@ -134,6 +134,48 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
 
     return pdfBuffer
 
+    return pdfBuffer
+
 }
 
-module.exports = { generateInterviewReport, generateResumePdf }
+const answerFeedbackSchema = z.object({
+    score: z.number().describe("A score between 0 and 100 evaluating the quality of the answer"),
+    strengths: z.array(z.string()).describe("Key strengths in the candidate's answer"),
+    weaknesses: z.array(z.string()).describe("Key weaknesses or areas of improvement in the candidate's answer"),
+    missingPoints: z.array(z.string()).describe("Important technical concepts or points that the candidate missed"),
+    suggestions: z.array(z.string()).describe("Actionable suggestions to improve the answer next time"),
+    betterAnswer: z.string().describe("A model answer that would score a 100/100, incorporating the candidate's strengths but fixing weaknesses"),
+    followUpQuestion: z.string().describe("A logical follow-up question the interviewer would ask based on this answer")
+})
+
+async function generateAnswerFeedback({ question, answer, resume, jobDescription }) {
+    const prompt = `You are an expert technical interviewer evaluating a candidate's answer.
+        
+        Job Description: ${jobDescription || "Software Engineer"}
+        Candidate Resume: ${resume || "Not provided"}
+        
+        Question Asked: "${question}"
+        Candidate's Answer: "${answer}"
+        
+        Evaluate this answer based on:
+        1. Relevance to the question and the job.
+        2. Technical correctness.
+        3. Clarity and communication.
+        4. Completeness (did they mention edge cases, time complexity if applicable, trade-offs, etc?).
+        
+        Return the feedback strictly following the provided JSON schema.
+    `
+
+    const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: zodToJsonSchema(answerFeedbackSchema),
+        }
+    })
+
+    return JSON.parse(response.text)
+}
+
+module.exports = { generateInterviewReport, generateResumePdf, generateAnswerFeedback }

@@ -3,11 +3,10 @@ import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
 import { subscribeToInterviewProgress } from '../../../services/socket.service.js'
-import { useAuth } from '../../auth/hooks/useAuth.js'
+import AppHeader from '../../../components/AppHeader'
 
 const Home = () => {
     const { loading, error, setError, generateReport, reports, deleteReport } = useInterview()
-    const { handleLogout } = useAuth()
     const [ localError, setLocalError ] = useState(null)
     const [ itemToDelete, setItemToDelete ] = useState(null)
     const [ isDeleting, setIsDeleting ] = useState(false)
@@ -98,11 +97,9 @@ const Home = () => {
                     </div>
                     
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.95rem', color: '#4b5563', lineHeight: 2.2 }}>
-                        <li>{generationProgress >= 15 ? '✓' : (activeStage === 'starting' ? '●' : '○')} Starting interview analysis</li>
+                        <li>{generationProgress >= 20 ? '✓' : (activeStage === 'starting' ? '●' : '○')} Starting analysis</li>
                         <li>{generationProgress >= 50 ? '✓' : (activeStage === 'resume_parsing' ? '●' : '○')} Parsing resume</li>
-                        <li>{generationProgress >= 70 ? '✓' : (activeStage === 'analyzing_job' ? '●' : '○')} Analyzing job description</li>
-                        <li>{generationProgress >= 85 ? '✓' : (activeStage === 'generating_questions' ? '●' : '○')} Generating interview questions</li>
-                        <li>{generationProgress >= 95 ? '✓' : (activeStage === 'creating_roadmap' ? '●' : '○')} Creating preparation roadmap</li>
+                        <li>{generationProgress >= 90 ? '✓' : (activeStage === 'ai_processing' ? '●' : '○')} AI is processing your interview strategy...</li>
                         <li>{generationProgress >= 100 ? '✓' : (activeStage === 'saving_strategy' ? '●' : '○')} Saving your strategy</li>
                     </ul>
 
@@ -118,27 +115,7 @@ const Home = () => {
     return (
         <div className='home-page'>
             {/* Page Header */}
-            <header className='page-header' style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                    <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
-                    <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
-                </div>
-                <button 
-                    className='logout-btn' 
-                    aria-label='Logout'
-                    onClick={async () => {
-                        await handleLogout();
-                        navigate('/login');
-                    }}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span>Logout</span>
-                </button>
-            </header>
+            <AppHeader title="Interview AI" subtitle="Create Your Custom Interview Plan" />
 
             {/* Main Card */}
             <div className='interview-card'>

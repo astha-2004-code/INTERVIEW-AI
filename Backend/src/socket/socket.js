@@ -1,6 +1,7 @@
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
+const interviewHandler = require("./interviewHandler");
 
 let io;
 
@@ -79,6 +80,9 @@ const initSocket = (server) => {
         
         // Join user-specific room
         socket.join(`user:${socket.user.id}`);
+
+        // Register handlers
+        interviewHandler(io, socket);
 
         socket.on("disconnect", () => {
             console.log(`Socket disconnected: ${socket.id}`);

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import '../style/interview.scss'
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate, useParams } from 'react-router'
-import { useAuth } from '../../auth/hooks/useAuth'
-
+import AppHeader from '../../../components/AppHeader'
+import MockInterview from '../components/MockInterview'
 
 
 const NAV_ITEMS = [
+    { id: 'mock', label: 'Mock Interview', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>) },
     { id: 'technical', label: 'Technical Questions', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>) },
     { id: 'behavioral', label: 'Behavioral Questions', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>) },
     { id: 'roadmap', label: 'Road Map', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>) },
@@ -59,9 +60,8 @@ const RoadMapDay = ({ day }) => (
 
 // ── Main Component ────────────────────────────────────────────────────────────
 const Interview = () => {
-    const [ activeNav, setActiveNav ] = useState('technical')
+    const [ activeNav, setActiveNav ] = useState('mock')
     const { report, getReportById, loading, error, setError, getResumePdf } = useInterview()
-    const { handleLogout } = useAuth()
     const navigate = useNavigate()
     const { interviewId } = useParams()
 
@@ -96,6 +96,8 @@ const Interview = () => {
 
     return (
         <div className='interview-page'>
+            <AppHeader title="Interview AI" subtitle={report.title} />
+            
             {error && (
                 <div className="error-banner">
                     <span className="error-icon">⚠</span>
@@ -136,22 +138,6 @@ const Interview = () => {
                         >
                             Back to Home
                         </button>
-                        <button
-                            onClick={async () => {
-                                await handleLogout();
-                                navigate('/login');
-                            }}
-                            className='logout-btn'
-                            aria-label='Logout'
-                            style={{ width: '100%', justifyContent: 'center' }}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                <polyline points="16 17 21 12 16 7"></polyline>
-                                <line x1="21" y1="12" x2="9" y2="12"></line>
-                            </svg>
-                            <span>Logout</span>
-                        </button>
                     </div>
                 </nav>
 
@@ -159,6 +145,10 @@ const Interview = () => {
 
                 {/* ── Center Content ── */}
                 <main className='interview-content'>
+                    {activeNav === 'mock' && (
+                        <MockInterview report={report} />
+                    )}
+
                     {activeNav === 'technical' && (
                         <section>
                             <div className='content-header'>

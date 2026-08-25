@@ -115,3 +115,26 @@ export const subscribeToInterviewProgress = (generationId, callbacks) => {
         s.io.off("reconnect", onReconnect);
     };
 };
+
+export const submitAnswer = (data) => {
+    const s = getSocket();
+    s.emit("answer:submit", data);
+};
+
+export const subscribeToAnswerFeedback = (callbacks) => {
+    const s = getSocket();
+
+    const onAnalyzing = (data) => callbacks.onAnalyzing && callbacks.onAnalyzing(data);
+    const onFeedback = (data) => callbacks.onFeedback && callbacks.onFeedback(data);
+    const onError = (data) => callbacks.onError && callbacks.onError(data);
+
+    s.on("answer:analyzing", onAnalyzing);
+    s.on("answer:feedback", onFeedback);
+    s.on("answer:error", onError);
+
+    return () => {
+        s.off("answer:analyzing", onAnalyzing);
+        s.off("answer:feedback", onFeedback);
+        s.off("answer:error", onError);
+    };
+};
